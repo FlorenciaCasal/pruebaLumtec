@@ -34,3 +34,37 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+
+
+
+
+
+Cambios clave:
+body → min-h-screen flex flex-col
+Para que ocupe toda la altura de la pantalla y distribuya sus hijos en columna.
+
+<main> → flex-grow
+Para que el contenido principal tome todo el espacio disponible entre Navbar y Footer.
+
+Con eso, incluso si no hay mucho contenido, el Footer se queda bien abajo pegado.
+
+
+Comandos prismanpx 
+npx prisma generate
+npx prisma db seed
+npx prisma studio
+
+Levantar ngrok desde la carpeta que lo contiene: 
+./ngrok http 3000
+
+
+📱 Breakpoints de Tailwind (predeterminados)
+Nombre	Clase	Min-width (px)
+xs (no existe por defecto en Tailwind)	—	—
+sm	sm:	640px
+md	md:	768px
+lg	lg:	1024px
+xl	xl:	1280px
+2xl	2xl:	1536px
