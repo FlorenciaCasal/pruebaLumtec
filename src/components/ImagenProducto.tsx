@@ -25,7 +25,7 @@ export default function ImagenProducto({
             return <Image src={src} alt={alt} width={width} height={height} />;
         }
     } catch (err) {
-        console.error('URL inválida:', src);
+        console.error('URL inválida:', src, err);
     }
 
     // Fallback si no está permitido o es inválida

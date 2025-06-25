@@ -2,9 +2,6 @@ import { ProductWithImages } from '@/types/productImage.types';
 import ProductImages from '@/components/ProductImages';
 import CheckoutButton from '@/components/CheckoutButton';
 
-type Props = {
-        params: { id: string };
-};
 
 async function getProduct(id: string): Promise<ProductWithImages> {
         // const res = await fetch(`${process.env.BASE_URL}/api/products/${id}`, { cache: 'no-store' });

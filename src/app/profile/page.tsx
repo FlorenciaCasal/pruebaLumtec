@@ -132,15 +132,15 @@ export default function ProfilePage() {
                             <p className="text-gray-500">Sin pedidos realizados.</p>
                         ) : (
                             <ul className="space-y-3">
-                                {profile.orders.map((order: any) => (
-                                    <li key={order.id} className="p-3 border rounded-lg">
+                                {profile.orders.map((orders: any) => (
+                                    <li key={orders.id} className="p-3 border rounded-lg">
                                         <div className="flex justify-between mb-2">
-                                            <p className="font-semibold">Total: ${order.total}</p>
-                                            <p className="text-sm">{new Date(order.createdAt).toLocaleDateString()}</p>
+                                            <p className="font-semibold">Total: ${orders.total}</p>
+                                            <p className="text-sm">{new Date(orders.createdAt).toLocaleDateString()}</p>
                                         </div>
-                                        <p className="text-sm mb-2">Estado: <span className="font-medium">{order.status}</span></p>
+                                        <p className="text-sm mb-2">Estado: <span className="font-medium">{orders.status}</span></p>
                                         <ul className="text-sm space-y-1">
-                                            {order.orderItems.map((item: any) => (
+                                            {orders.orderItems.map((item: any) => (
                                                 <li key={item.id} className="flex items-center space-x-2">
                                                     <img src={item.product.images[0]?.url} alt="" className="w-8 h-8 rounded" />
                                                     <div>

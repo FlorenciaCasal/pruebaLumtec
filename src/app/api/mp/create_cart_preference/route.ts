@@ -6,6 +6,13 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 
+type CartItem = {
+  id: string;
+  title: string;
+  quantity: number;
+  unit_price: number;
+}
+
 // Instanciamos la clase Preference del SDK con mercadopago configurado
 const preferences = new Preference(mercadopago);
 
@@ -19,7 +26,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Permiso denegado" }, { status: 403 });
   }
   try {
-    const items = await request.json();
+    const items: CartItem[] = await request.json();
     // Validación básica de que items sea array y tenga contenido
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Items inválidos" }, { status: 400 });

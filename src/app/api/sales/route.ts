@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // GET /api/sales
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
     try {
         // Traemos todas las ventas con la info del producto asociado
         const sales = await prisma.sale.findMany({

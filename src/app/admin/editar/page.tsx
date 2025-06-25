@@ -48,7 +48,7 @@ export default function EditarProductos() {
     const [selected, setSelected] = useState<Product | null>(null);
     const [newImageUrl, setNewImageUrl] = useState<string>('');
     const [loadingImage, setLoadingImage] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    // const [error, setError] = useState<string | null>(null);
     const [filtro, setFiltro] = useState('');
 
     const fetchProductos = async () => {
@@ -89,14 +89,14 @@ export default function EditarProductos() {
         }
     };
 
-    const handleAddImage = () => {
-        if (!newImageUrl.trim() || !selected) return;
-        setSelected({
-            ...selected,
-            images: [...selected.images, { id: crypto.randomUUID(), url: newImageUrl }],
-        });
-        setNewImageUrl('');
-    };
+    // const handleAddImage = () => {
+    //     if (!newImageUrl.trim() || !selected) return;
+    //     setSelected({
+    //         ...selected,
+    //         images: [...selected.images, { id: crypto.randomUUID(), url: newImageUrl }],
+    //     });
+    //     setNewImageUrl('');
+    // };
 
     const handleRemoveImage = (id: string) => {
         if (!selected) return;
@@ -271,7 +271,6 @@ export default function EditarProductos() {
                                 onChange={handleFileUpload}
                             />
                             {loadingImage && <p className="text-sm text-gray-500 mt-1">Subiendo imágenes...</p>}
-                            {error && <p className="text-red-600 mt-2">{error}</p>}
 
                             <div className="flex flex-wrap gap-2 mt-2">
                                 {selected.images.map((img) => (

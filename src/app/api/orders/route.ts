@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id)
         return new NextResponse("Unauthorized", { status: 401 });
