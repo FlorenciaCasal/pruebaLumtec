@@ -70,9 +70,9 @@ export async function POST(request: NextRequest) {
         currency_id: "ARS",
       })),
       back_urls: {
-        success: " http://localhost:3000/order-success?status=approved",
-        failure: " http://localhost:3000/order-success?status=failed",
-        pending: " http://localhost:3000/order-success?status=pending",
+        success: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?status=approved`,
+        failure: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?status=failed`,
+        pending: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?status=pending`,
       },
       auto_return: "approved",
       // notification_url: "https://b84c-148-222-130-216.ngrok-free.app/api/notifications",
