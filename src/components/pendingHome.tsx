@@ -6,6 +6,30 @@ import { setCartItems } from "@/lib/store/cart/cartSlice";
 import { getPendingProduct, clearPendingProduct } from "@/lib/localStorage";
 import { toast } from "sonner";
 
+type ProductImage = {
+    id: string;
+    url: string;
+    productId: string;
+};
+
+type Product = {
+    id: string;
+    name: string;
+    price: number;
+    images: ProductImage[];
+};
+
+type CartItem = {
+    id: string;
+    quantity: number;
+    product: Product;
+};
+
+// type CartResponse = {
+//     items: CartItem[];
+//     removedProducts: any[]; // o mejor tipado si querés
+// };
+
 export default function PendingProductHandler() {
     const dispatch = useDispatch();
 
@@ -23,7 +47,8 @@ export default function PendingProductHandler() {
                     const data = await res.json();
 
                     if (res.ok) {
-                        dispatch(setCartItems(data.cart.items.map((item: any) => ({
+                        // dispatch(setCartItems(data.cart.items.map((item: any) => ({
+                        dispatch(setCartItems(data.cart.items.map((item: CartItem) => ({
                             id: item.id,
                             name: item.product.name,
                             price: item.product.price,
@@ -52,16 +77,3 @@ export default function PendingProductHandler() {
 
     return null;
 }
-//         const product = getPendingProduct();
-//         if (product) {
-//             dispatch(addToCart(product));
-//             toast.success("Producto agregado al carrito", {
-//                 description: 'Se guardaron los cambios correctamente.',
-//                 duration: 3000,
-//                 position: 'top-center'
-//             });
-//         }
-//     }, [dispatch]);
-
-//     return null;
-// }

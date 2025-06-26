@@ -1,6 +1,6 @@
 'use client';
-
 import Image from 'next/image';
+
 
 const dominiosPermitidos = [
     'res.cloudinary.com',
@@ -29,5 +29,10 @@ export default function ImagenProducto({
     }
 
     // Fallback si no está permitido o es inválida
-    return <img src={src} alt={alt} width={width} height={height} />;
+    return <Image
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+    />
 }

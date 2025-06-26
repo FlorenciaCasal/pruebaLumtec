@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import Link from 'next/link';
 import { ProductWithImages } from "@/types/productImage.types";
 import { RootState } from "@/lib/store";
+import Image from "next/image";
 
 
 interface Props {
@@ -32,7 +33,15 @@ export default function HomeClient({ products }: Props) {
     transition-transform duration-300 ease-in-out">
                             <Link href={`/products/${p.id}`} className="flex md:flex-row gap-2 xs:gap-4 cursor-pointer items-stretch flex-1 h-full">
                                 <div className="bg-gray-100 p-2 flex-shrink-0 w-32 xs:w-36 h-full flex items-center justify-center rounded">
-                                    <img src={p.images[0]?.url || "/images/default.webp"} alt={p.name} className="w-full h-full object-contain rounded" />
+                                    {/* <img src={p.images[0]?.url || "/images/default.webp"} alt={p.name} className="w-full h-full object-contain rounded" /> */}
+                                    <div className="relative w-full h-full">
+                                        <Image
+                                            src={p.images[0]?.url || "/images/default.webp"}
+                                            alt={p.name}
+                                            className="object-contain rounded"
+                                            fill
+                                        />
+                                    </div>
                                 </div>
                                 <div className="flex flex-col justify-center h-full">
                                     <h2 className="text-xl font-semibold">{p.name}</h2>

@@ -1,10 +1,11 @@
 "use client";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/lib/store";
-import { removeFromCart, clearCart, incrementQuantity, decrementQuantity, addToCart } from "@/lib/store/cart/cartSlice";
+import { removeFromCart, clearCart, incrementQuantity, decrementQuantity } from "@/lib/store/cart/cartSlice";
 import Link from "next/link";
 import CheckoutCartButton from "../components/CheckoutCartButton";
 import { Trash2, Plus, Minus } from 'lucide-react';
+import Image from "next/image";
 
 
 
@@ -112,11 +113,18 @@ export default function Cart() {
                                 className="flex justify-between items-center p-2 rounded bg-gray-50"
                             >
                                 <div className="flex items-center gap-4 sm:gap-8">
-                                    <img
+                                    {/* <img
                                         src={Array.isArray(item.images) && item.images.length > 0 ? item.images[0].url : "/images/default.webp"}
 
                                         alt={item.name}
                                         className="w-16 h-16 object-cover rounded"
+                                    /> */}
+                                    <Image
+                                        src={Array.isArray(item.images) && item.images.length > 0 ? item.images[0].url : "/images/default.webp"}
+                                        alt={item.name}
+                                        className="object-cover rounded"
+                                        width={64}
+                                        height={64}
                                     />
                                     <div>
                                         <h3 className="font-semibold">{item.name}</h3>
@@ -184,8 +192,9 @@ export default function Cart() {
                         <CheckoutCartButton />
                     </div>
                 </>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }
 

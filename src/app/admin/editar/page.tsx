@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-
+import Image from 'next/image';
 
 
 type Product = {
@@ -16,7 +16,7 @@ type Product = {
 
 async function compressImage(file: File, quality = 0.8): Promise<Blob> {
     return new Promise((resolve, reject) => {
-        const img = new Image();
+        const img = new window.Image();
         img.onload = () => {
             const canvas = document.createElement('canvas');
             canvas.width = img.width;
@@ -275,7 +275,14 @@ export default function EditarProductos() {
                             <div className="flex flex-wrap gap-2 mt-2">
                                 {selected.images.map((img) => (
                                     <div key={img.id} className="relative">
-                                        <img src={img.url} alt="Imagen producto" className="w-24 h-24 object-cover rounded" />
+                                        {/* <img src={img.url} alt="Imagen producto" className="w-24 h-24 object-cover rounded" /> */}
+                                        <Image
+                                            src={img.url}
+                                            alt="Imagen producto"
+                                            width={96}   // 24 * 4 px (tailwind w-24)
+                                            height={96}  // 24 * 4 px (tailwind h-24)
+                                            className="object-cover rounded"
+                                        />
                                         <button
                                             onClick={() => handleRemoveImage(img.id)}
                                             className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"

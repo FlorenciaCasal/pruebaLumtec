@@ -8,6 +8,7 @@ import type { JWT } from "next-auth/jwt";
 import { PrismaClient, Prisma } from "@prisma/client";
 
 
+
 const prisma = new PrismaClient();
 
 export const authOptions: AuthOptions = {
@@ -42,7 +43,8 @@ export const authOptions: AuthOptions = {
                 email: { label: "Email", type: "email", placeholder: "email@ejemplo.com" },
                 password: { label: "Contraseña", type: "password" },
             },
-            async authorize(credentials): Promise<any> {
+            // async authorize(credentials): Promise<any> {
+            async authorize(credentials) {
                 if (!credentials?.email || !credentials?.password) return null;
 
                 const user = await prisma.user.findUnique({

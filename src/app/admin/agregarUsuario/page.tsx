@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from 'sonner';
 
 export default function AddUserPage() {
@@ -11,7 +10,7 @@ export default function AddUserPage() {
         password: "",
     });
     const [loading, setLoading] = useState(false);
-    const router = useRouter();
+    
 
     const resetForm = () => {
         setForm({

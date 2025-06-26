@@ -4,6 +4,26 @@ import { useDispatch } from "react-redux";
 import { setCartItems, clearCart } from "@/lib/store/cart/cartSlice";
 import { useSession } from "next-auth/react";
 
+type ApiCartItem = {
+    id: string;
+    quantity: number;
+    product: {
+        id: string;
+        name: string;
+        price: number;
+        images: { url: string }[];
+    };
+};
+
+// type CartItem = {
+//     cartItemId: string;
+//     productId: string;
+//     name: string;
+//     price: number;
+//     quantity: number;
+//     images: { url: string }[];
+// };
+
 export default function CartSyncHandler() {
     const dispatch = useDispatch();
     const { status } = useSession();
@@ -16,7 +36,7 @@ export default function CartSyncHandler() {
             });
             const data = await res.json();
             if (data.items) {
-                const items = data.items.map((item: any) => ({
+                const items = data.items.map((item: ApiCartItem) => ({
                     cartItemId: item.id, // 👈 ahora traemos el cartItem.id
                     productId: item.product.id,
                     name: item.product.name,

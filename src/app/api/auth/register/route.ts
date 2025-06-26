@@ -31,6 +31,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ message: "Usuario creado correctamente" }, { status: 201 });
     } catch (error) {
+        console.error(error);
         return NextResponse.json({ message: "Error en el servidor" }, { status: 500 });
     }
 }

@@ -1,11 +1,69 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
+import Image from "next/image";
+
+type ProductImage = {
+    url: string;
+};
+
+type Product = {
+    name: string;
+    images: ProductImage[];
+};
+
+type CartItem = {
+    product: Product;
+    quantity: number;
+};
+
+type Sale = {
+    id: string;
+    product: Product;
+    quantity: number;
+    amount: number;
+    createdAt: string;
+};
+
+type Payment = {
+    id: string;
+    amount: number;
+    status: string;
+    createdAt: string;
+};
+
+type OrderItem = {
+    id: string;
+    product: Product;
+    quantity: number;
+    unitPrice: number;
+};
+
+type Order = {
+    id: string;
+    total: number;
+    createdAt: string;
+    status: string;
+    orderItems: OrderItem[];
+};
+
+type Profile = {
+    name: string;
+    email: string;
+    image?: string;
+    role: string;
+    carts?: { items: CartItem[] }[];
+    sales: Sale[];
+    payments: Payment[];
+    orders: Order[];
+};
+
 
 export default function ProfilePage() {
-    const [profile, setProfile] = useState<any>(null);
+    // const [profile, setProfile] = useState<any>(null);
+    const [profile, setProfile] = useState<Profile | null>(null);
     const [openSection, setOpenSection] = useState<string | null>(null);
-    const { data: session, status } = useSession();
+    const { status } = useSession();
 
     // Solo cargar perfil cuando la sesión esté autenticada
     useEffect(() => {
@@ -48,7 +106,15 @@ export default function ProfilePage() {
             {/* Header */}
             <div className="flex items-center space-x-4">
                 {profile.image ? (
-                    <img src={profile.image} alt={profile.name} className="w-12 h-12 md:w-16 md:h-16 rounded-full" />
+                    // <img src={profile.image} alt={profile.name} className="w-12 h-12 md:w-16 md:h-16 rounded-full" />
+                    <div className="relative w-12 h-12 md:w-16 md:h-16">
+                        <Image
+                            src={profile.image}
+                            alt={profile.name}
+                            className="rounded-full object-cover"
+                            fill
+                        />
+                    </div>
                 ) : (
                     <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gray-300 flex items-center justify-center text-xl font-bold">
                         {profile.name
@@ -72,9 +138,17 @@ export default function ProfilePage() {
                             <p className="text-gray-500">Sin productos en carrito.</p>
                         ) : (
                             <ul className="divide-y">
-                                {profile.carts?.[0]?.items?.map((item: any) => (
+                                {/* {profile.carts?.[0]?.items?.map((item: any) => ( */}
+                                {profile.carts?.[0]?.items?.map((item) => (
                                     <li key={item.product.name} className="py-2 flex items-center space-x-3">
-                                        <img src={item.product.images[0]?.url} alt="" className="w-10 h-10 rounded" />
+                                        {/* <img src={item.product.images[0]?.url} alt="" className="w-10 h-10 rounded" /> */}
+                                        <Image
+                                            src={item.product.images[0]?.url}
+                                            alt="carrito actual"
+                                            className=" rounded"
+                                            width={40}
+                                            height={40}
+                                        />
                                         <div>
                                             <p className="font-medium">{item.product.name}</p>
                                             <p className="text-sm text-gray-500">Cantidad: {item.quantity}</p>
@@ -91,7 +165,8 @@ export default function ProfilePage() {
                             <p className="text-gray-500">Aún no realizaste compras.</p>
                         ) : (
                             <ul className="space-y-2">
-                                {profile.sales.map((sale: any) => (
+                                {/* {profile.sales.map((sale: any) => ( */}
+                                {profile.sales.map((sale) => (
                                     <li key={sale.id} className="flex justify-between items-center">
                                         <div>
                                             <p className="font-medium">{sale.product.name}</p>
@@ -113,7 +188,8 @@ export default function ProfilePage() {
                             <p className="text-gray-500">Sin pagos registrados.</p>
                         ) : (
                             <ul className="space-y-2">
-                                {profile.payments.map((payment: any) => (
+                                {/* {profile.payments.map((payment: any) => ( */}
+                                {profile.payments.map((payment) => (
                                     <li key={payment.id} className="flex justify-between items-center">
                                         <div>
                                             <p className="font-semibold">${payment.amount}</p>
@@ -132,7 +208,8 @@ export default function ProfilePage() {
                             <p className="text-gray-500">Sin pedidos realizados.</p>
                         ) : (
                             <ul className="space-y-3">
-                                {profile.orders.map((orders: any) => (
+                                {/* {profile.orders.map((orders: any) => ( */}
+                                {profile.orders.map((orders) => (
                                     <li key={orders.id} className="p-3 border rounded-lg">
                                         <div className="flex justify-between mb-2">
                                             <p className="font-semibold">Total: ${orders.total}</p>
@@ -140,9 +217,17 @@ export default function ProfilePage() {
                                         </div>
                                         <p className="text-sm mb-2">Estado: <span className="font-medium">{orders.status}</span></p>
                                         <ul className="text-sm space-y-1">
-                                            {orders.orderItems.map((item: any) => (
+                                            {/* {orders.orderItems.map((item: any) => ( */}
+                                            {orders.orderItems.map((item) => (
                                                 <li key={item.id} className="flex items-center space-x-2">
-                                                    <img src={item.product.images[0]?.url} alt="" className="w-8 h-8 rounded" />
+                                                    {/* <img src={item.product.images[0]?.url} alt="" className="w-8 h-8 rounded" /> */}
+                                                    <Image
+                                                        src={item.product.images[0]?.url}
+                                                        alt="pedidos"
+                                                        className=" rounded"
+                                                        width={32}
+                                                        height={32}
+                                                    />
                                                     <div>
                                                         <p>{item.product.name}</p>
                                                         <p className="text-xs text-gray-500">Cantidad: {item.quantity} - ${item.unitPrice}</p>

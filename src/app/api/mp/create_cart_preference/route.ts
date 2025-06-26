@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
 
     // Configurar preferencia de pago
     const preference = {
-      items: items.map((item: any) => ({
+      items: items.map((item: CartItem) => ({
         id: item.id,
         title: item.title,
         quantity: item.quantity,

@@ -1,11 +1,12 @@
 'use client';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import Image from "next/image";
 
 
 async function compressImage(file: File, quality = 0.8): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    const img = new Image();
+    const img = new window.Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
       canvas.width = img.width;
@@ -178,7 +179,14 @@ const AgregarProductos = () => {
 
           <div className="flex flex-wrap gap-2 mt-2">
             {images.map((url, idx) => (
-              <img key={idx} src={url} alt={`Imagen ${idx}`} className="w-24 h-24 object-cover rounded" />
+              <Image
+                key={idx}
+                src={url}
+                alt={`Imagen ${idx}`}
+                width={96}   // 24 * 4 px (tailwind w-24)
+                height={96}  // 24 * 4 px (tailwind h-24)
+                className="object-cover rounded"
+              />
             ))}
           </div>
         </div>

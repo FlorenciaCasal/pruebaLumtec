@@ -1,4 +1,14 @@
-export const savePendingProduct = (product: any) => {
+import { ProductImage } from '@/types/productImage.types';
+
+type PendingProduct = {
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    images: ProductImage[];
+};
+
+export const savePendingProduct = (product: PendingProduct) => {
     localStorage.setItem("pendingProduct", JSON.stringify(product));
 };
 

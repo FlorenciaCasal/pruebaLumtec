@@ -1,12 +1,12 @@
 "use client";
 import { useDispatch } from "react-redux";
 import { useSession } from "next-auth/react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { savePendingProduct } from "@/lib/localStorage";
 import { LogIn } from "lucide-react";
 import { setCartItems } from "@/lib/store/cart/cartSlice";
+import { signIn, SignInResponse } from "next-auth/react";
 
 type ProductImage = {
   id: string;
@@ -21,6 +21,17 @@ type Props = {
   images: ProductImage[];
   quantity?: number;
 };
+
+type CartItemFromApi = {
+  id: string;
+  quantity: number;
+  product: {
+    name: string;
+    price: number;
+    images: ProductImage[];
+  };
+};
+
 
 export default function CheckoutButton({ id, name, price, images, quantity = 1 }: Props) {
   const dispatch = useDispatch();
@@ -41,10 +52,11 @@ export default function CheckoutButton({ id, name, price, images, quantity = 1 }
             <button
               onClick={async () => {
                 toast.dismiss(t);
-                const res: any = await signIn(undefined, {
+                // const res: any = await signIn(undefined, {
+                const res = await signIn(undefined, {
                   redirect: false,
                   callbackUrl: "/"
-                });
+                }) as SignInResponse | undefined;
                 if (res?.url) {
                   router.push(res.url);
                 }
@@ -75,7 +87,7 @@ export default function CheckoutButton({ id, name, price, images, quantity = 1 }
         return;
       }
 
-      dispatch(setCartItems(data.cart.items.map((item: any) => ({
+      dispatch(setCartItems(data.cart.items.map((item: CartItemFromApi) => ({
         cartItemId: item.id,
         name: item.product.name,
         price: item.product.price,

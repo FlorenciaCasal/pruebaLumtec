@@ -1,9 +1,12 @@
-import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+
+// export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+    const params = await context.params;
     try {
         const session = await getServerSession(authOptions);
         if (!session) {
@@ -12,6 +15,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 
         const userId = session.user.id;
         const cartItemId = params.id;
+        //const cartItemId = context.params.id;
 
         // Validar que el item pertenece al carrito del usuario
         const cartItem = await prisma.cartItem.findUnique({
@@ -40,7 +44,9 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 }
 
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+// export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+    const params = await context.params;
     try {
         const session = await getServerSession(authOptions);
         if (!session) {

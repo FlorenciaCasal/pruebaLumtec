@@ -1,9 +1,16 @@
 "use client";
-
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { useState } from "react";
 import { toast } from "sonner";
+
+declare global {
+  interface Window {
+    MercadoPago?: new (publicKey: string, options?: { locale: string }) => {
+      checkout: (options: { preference: { id: string }, autoOpen: boolean }) => void;
+    };
+  }
+}
 
 export default function CheckoutCartButton() {
   const items = useSelector((state: RootState) => state.cart.items);
@@ -38,7 +45,8 @@ export default function CheckoutCartButton() {
     const data = await res.json();
 
     if (data.id) {
-      const MercadoPago = (window as any).MercadoPago;
+      // const MercadoPago = (window as any).MercadoPago;
+      const MercadoPago = window.MercadoPago;
       if (!MercadoPago) {
         toast.error(`❌ Mercado Pago SDK no cargado`, {
           duration: 3000,
@@ -48,7 +56,7 @@ export default function CheckoutCartButton() {
         return;
       }
 
-      const mp = new MercadoPago(process.env.NEXT_PUBLIC_MP_PUBLIC_KEY, {
+      const mp = new MercadoPago(process.env.NEXT_PUBLIC_MP_PUBLIC_KEY!, {
         locale: "es-AR",
       });
 
