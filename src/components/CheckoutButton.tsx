@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { savePendingProduct } from "@/lib/localStorage";
 import { LogIn } from "lucide-react";
-import { setCartItems } from "@/lib/store/cart/cartSlice";
 import { signIn, SignInResponse } from "next-auth/react";
 import { addProductToCart } from "@/lib/store/cart/cartThunks";
 import { AppDispatch } from "@/lib/store";
@@ -24,15 +23,6 @@ type Props = {
   quantity?: number;
 };
 
-type CartItemFromApi = {
-  id: string;
-  quantity: number;
-  product: {
-    name: string;
-    price: number;
-    images: ProductImage[];
-  };
-};
 
 
 export default function CheckoutButton({ id, name, price, images, quantity = 1 }: Props) {
