@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 
 type CartItem = {
   id: string;
+  productId: string;
   title: string;
   quantity: number;
   unit_price: number;
@@ -32,13 +33,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Items inválidos" }, { status: 400 });
     }
     // Validar stock disponible de cada producto
-    const productIds = [...new Set(items.map(item => item.id))];
+    const productIds = [...new Set(items.map(item => item.productId))];
 
     const products = await prisma.product.findMany({
       where: { id: { in: productIds } },
     });
     for (const item of items) {
-      const product = products.find(p => p.id === item.id);
+      const product = products.find(p => p.id === item.productId);
       if (!product) {
         return NextResponse.json({ error: `Producto ${item.title} no encontrado` }, { status: 404 });
       }
@@ -65,19 +66,32 @@ export async function POST(request: NextRequest) {
     }
 
     // Configurar preferencia de pago
+    // const preference = {
+    //   items: items.map((item: CartItem) => ({
+    //   id: item.id,
+    //   title: item.title,
+    //   quantity: item.quantity,
+    //   unit_price: item.unit_price,
+    //   currency_id: "ARS",
+    // })),
+
     const preference = {
-      items: items.map((item: CartItem) => ({
-        id: item.id,
-        title: item.title,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        currency_id: "ARS",
-      })),
+      items: items.map((item: CartItem) => {
+        const product = products.find(p => p.id === item.productId);
+        return {
+          id: item.id,
+          title: item.title,
+          quantity: item.quantity,
+          unit_price: product ? product.price : 0,  // Tomamos el precio real desde la DB
+          currency_id: "ARS",
+        };
+      }),
       back_urls: {
         success: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?status=approved`,
         failure: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?status=failed`,
         pending: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?status=pending`,
       },
+
       auto_return: "approved",
       // notification_url: "https://b84c-148-222-130-216.ngrok-free.app/api/notifications",
       notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/notifications`,
@@ -86,6 +100,9 @@ export async function POST(request: NextRequest) {
         cartId: cart.id,  // 👈 le pasamos el id del carrito activo
       },
     };
+
+    // Aquí justo antes de llamar a MP:
+    console.log("back_urls en preferencia:", preference.back_urls);
 
     // Creamos la preferencia usando la instancia Preference
     const result = await preferences.create({ body: preference });

@@ -70,6 +70,7 @@ export async function addProductToCart(productId: string, quantity: number, disp
 
     // const data = await res.json();
     const data: AddProductToCartResponse = await res.json();
+    console.log("Respuesta completa de addProductToCart API:", data);
 
     if (res.ok && data.cart) {
         dispatch(clearCart());

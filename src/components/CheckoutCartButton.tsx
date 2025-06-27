@@ -30,6 +30,7 @@ export default function CheckoutCartButton() {
     // 🎯 Mapear los items al formato de Mercado Pago
     const mpItems = items.map((item) => ({
       id: item.cartItemId,
+      productId: item.productId,
       title: item.name, // tu carrito usa `name`, MP espera `title`
       quantity: item.quantity,
       currency_id: "ARS",

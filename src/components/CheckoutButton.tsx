@@ -7,6 +7,8 @@ import { savePendingProduct } from "@/lib/localStorage";
 import { LogIn } from "lucide-react";
 import { setCartItems } from "@/lib/store/cart/cartSlice";
 import { signIn, SignInResponse } from "next-auth/react";
+import { addProductToCart } from "@/lib/store/cart/cartThunks";
+import { AppDispatch } from "@/lib/store";
 
 type ProductImage = {
   id: string;
@@ -72,34 +74,41 @@ export default function CheckoutButton({ id, name, price, images, quantity = 1 }
       return;
     }
 
-    console.log("productId: id y quantity",JSON.stringify({ productId: id, quantity }));
+    console.log("productId: id y quantity", JSON.stringify({ productId: id, quantity }));
 
     // Si hay sesión → llamás al API y despachás al store
+    // try {
+    //   const res = await fetch("/api/cart", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({ productId: id, quantity }),
+    //   });
+
+    //   const data = await res.json();
+
+    //   if (!res.ok) {
+    //     toast.error(data.error || "Error al agregar el producto");
+    //     return;
+    //   }
+
+    //   dispatch(setCartItems(data.cart.items.map((item: CartItemFromApi) => ({
+    //     cartItemId: item.id,
+    //     name: item.product.name,
+    //     price: item.product.price,
+    //     quantity: item.quantity,
+    //     images: item.product.images,
+    //   }))
+    //   ));
+    //   toast.success("Producto agregado al carrito");
+    // } catch (error) {
+    //   console.error("Error de red:", error);
+    //   toast.error("No se pudo conectar con el servidor");
+    // }
     try {
-      const res = await fetch("/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: id, quantity }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.error || "Error al agregar el producto");
-        return;
-      }
-
-      dispatch(setCartItems(data.cart.items.map((item: CartItemFromApi) => ({
-        cartItemId: item.id,
-        name: item.product.name,
-        price: item.product.price,
-        quantity: item.quantity,
-        images: item.product.images,
-      }))
-      ));
+      await addProductToCart(id, quantity, dispatch as AppDispatch);
       toast.success("Producto agregado al carrito");
     } catch (error) {
-      console.error("Error de red:", error);
+      console.error("Error al agregar producto al carrito", error);
       toast.error("No se pudo conectar con el servidor");
     }
   };
