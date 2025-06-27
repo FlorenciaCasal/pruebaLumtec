@@ -39,7 +39,8 @@ export default function CheckoutCartButton() {
     console.log("Items para MP:", mpItems);
 
 
-    const res = await fetch("/api/mp/create_cart_preference", {
+     const res = await fetch("/api/mp/create_cart_preference", {
+   // const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/mp/create_cart_preference`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(mpItems),
