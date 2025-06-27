@@ -55,12 +55,27 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ cart: updatedCart, removedProducts });
+    return NextResponse.json({
+      cart: {
+        id: updatedCart!.id,
+        items: updatedCart!.items.map(item => ({
+          id: item.id,
+          quantity: item.quantity,
+          product: {
+            id: item.product.id, // asegurado
+            name: item.product.name,
+            price: item.product.price,
+            images: item.product.images,
+          }
+        }))
+      }, removedProducts
+    });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }
+
 
 export async function GET() {
   try {
@@ -68,8 +83,6 @@ export async function GET() {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-
     const cart = await prisma.cart.findFirst({
       where: {
         userId: session.user.id,
@@ -108,7 +121,18 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({ items: updatedCart!.items, removedProducts });
+    return NextResponse.json({
+      items: updatedCart!.items.map(item => ({
+        id: item.id,
+        quantity: item.quantity,
+        product: {
+          id: item.product.id, // asegurado
+          name: item.product.name,
+          price: item.product.price,
+          images: item.product.images,
+        }
+      })), removedProducts
+    });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });

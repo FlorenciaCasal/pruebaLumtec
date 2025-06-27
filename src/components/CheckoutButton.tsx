@@ -72,6 +72,8 @@ export default function CheckoutButton({ id, name, price, images, quantity = 1 }
       return;
     }
 
+    console.log("productId: id y quantity",JSON.stringify({ productId: id, quantity }));
+
     // Si hay sesión → llamás al API y despachás al store
     try {
       const res = await fetch("/api/cart", {

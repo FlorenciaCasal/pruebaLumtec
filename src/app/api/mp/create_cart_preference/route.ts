@@ -48,6 +48,10 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("Session user id:", session.user.id);
+    console.log("Product IDs:", productIds);
+    console.log("Items:", items);
+
+
 
     // Buscar carrito open del usuario
     const cart = await prisma.cart.findFirst({
