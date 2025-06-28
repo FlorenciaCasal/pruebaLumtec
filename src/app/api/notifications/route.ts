@@ -8,6 +8,7 @@ const MP_SECRET = process.env.MP_SECRET!;
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 export async function POST(request: NextRequest) {
+  console.log("Notificación recibida:", await request.text());
   let body;
 
   if (!isDevelopment) {
@@ -28,7 +29,10 @@ export async function POST(request: NextRequest) {
     body = await request.json();
   }
 
-  if (body.type !== "payment") return new NextResponse("OK", { status: 200 });
+  // if (body.type !== "payment") return new NextResponse("OK", { status: 200 });
+  if (body.type !== "payment" && body.topic !== "payment") {
+    return new NextResponse("OK", { status: 200 });
+  }
 
   const paymentId = body.data.id;
 
