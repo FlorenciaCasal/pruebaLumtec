@@ -218,7 +218,14 @@ export async function POST(request: NextRequest) {
 
   const { status, metadata, additional_info } = paymentData;
   const userId = metadata?.userId;
-  const items = additional_info?.items;
+  // const items = additional_info?.items;
+  type Item = {
+    id: string;
+    quantity: number | string;
+    unit_price: number;
+  };
+
+  const items: Item[] = additional_info?.items;
   const cartId = metadata?.cartId;
 
   if (!userId || !items || items.length === 0) {
@@ -273,7 +280,8 @@ export async function POST(request: NextRequest) {
       // Procesar cada item vendido
       for (const item of items) {
         const productId = item.id;
-        const quantity = parseInt(item.quantity, 10);
+        // const quantity = parseInt(item.quantity, 10);
+        const quantity = typeof item.quantity === "string" ? parseInt(item.quantity, 10) : item.quantity;
 
         const product = await tx.product.findUnique({
           where: { id: productId },
