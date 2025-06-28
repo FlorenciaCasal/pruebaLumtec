@@ -168,24 +168,27 @@ const MP_SECRET = process.env.MP_SECRET!;
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 type MercadoPagoNotification =
-  | {
-    action?: string;
-    type: "payment";
-    data: { id: string | number };
-  }
-  | {
-    topic: "payment";
-    resource: string | number;
-  };
+  | { action?: string; type: "payment"; data: { id: string | number } }
+  | { topic: "payment"; resource: string | number };
 
+// Type guards para discriminar tipos
+function isPaymentTypeNotification(
+  obj: any
+): obj is { type: "payment"; data: { id: string | number } } {
+  return obj?.type === "payment" && typeof obj.data?.id !== "undefined";
+}
+
+function isPaymentTopicNotification(
+  obj: any
+): obj is { topic: "payment"; resource: string | number } {
+  return obj?.topic === "payment" && typeof obj.resource !== "undefined";
+}
 
 export async function POST(request: NextRequest) {
   const bodyText = await request.text();
   console.log("Notificación recibida:", bodyText);
 
-  // let body: any;
   let body: MercadoPagoNotification;
-
 
   if (!isDevelopment) {
     const signature = request.headers.get("x-mercadopago-signature");
@@ -204,42 +207,16 @@ export async function POST(request: NextRequest) {
     body = JSON.parse(bodyText);
   }
 
-  const isPaymentType = "type" in body && body.type === "payment";
-  const isPaymentTopic = "topic" in body && body.topic === "payment";
-
-  if (!isPaymentType && !isPaymentTopic) {
+  if (!isPaymentTypeNotification(body) && !isPaymentTopicNotification(body)) {
     return new NextResponse("OK", { status: 200 });
   }
 
-  // Obtener paymentId desde data.id o resource según tipo de notificación
-  let paymentId: string | number | undefined;
-
-  function isPaymentTypeNotification(
-    obj: MercadoPagoNotification
-  ): obj is { type: "payment"; data: { id: string | number } } {
-    return "type" in obj && obj.type === "payment";
-  }
-
-  function isPaymentTopicNotification(
-    obj: MercadoPagoNotification
-  ): obj is { topic: "payment"; resource: string | number } {
-    return "topic" in obj && obj.topic === "payment";
-  }
+  let paymentId: string | number;
 
   if (isPaymentTypeNotification(body)) {
     paymentId = body.data.id;
-  } else if (isPaymentTopicNotification(body)) {
+  } else {
     paymentId = body.resource;
-  }
-
-  // if (isPaymentType) {
-  //   paymentId = body.data?.id;
-  // } else if (isPaymentTopic) {
-  //   paymentId = body.resource;
-  // }
-
-  if (!paymentId) {
-    return new NextResponse("Payment ID missing", { status: 400 });
   }
 
   console.log("Procesando paymentId:", paymentId);
@@ -258,7 +235,7 @@ export async function POST(request: NextRequest) {
 
   const { status, metadata, additional_info } = paymentData;
   const userId = metadata?.userId;
-  // const items = additional_info?.items;
+
   type Item = {
     id: string;
     quantity: number | string;
@@ -320,7 +297,6 @@ export async function POST(request: NextRequest) {
       // Procesar cada item vendido
       for (const item of items) {
         const productId = item.id;
-        // const quantity = parseInt(item.quantity, 10);
         const quantity = typeof item.quantity === "string" ? parseInt(item.quantity, 10) : item.quantity;
 
         const product = await tx.product.findUnique({
@@ -359,6 +335,7 @@ export async function POST(request: NextRequest) {
 
   return new NextResponse("OK", { status: 200 });
 }
+
 
 
 
