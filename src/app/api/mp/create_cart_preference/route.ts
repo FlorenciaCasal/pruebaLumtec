@@ -18,6 +18,7 @@ type CartItem = {
 const preferences = new Preference(mercadopago);
 
 export async function POST(request: NextRequest) {
+   console.log("handler llamado");
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -103,6 +104,7 @@ export async function POST(request: NextRequest) {
 
     // Aquí justo antes de llamar a MP:
     console.log("back_urls en preferencia:", preference.back_urls);
+    console.log("Preferencia completa antes de crear:", preference);
 
     // Creamos la preferencia usando la instancia Preference
     const result = await preferences.create({ body: preference });

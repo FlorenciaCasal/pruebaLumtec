@@ -4,9 +4,15 @@ const nextConfig: NextConfig = {
   images: {
     domains: [
       'res.cloudinary.com',
-      'http2.mlstatic.com', 
-      'nexum.com.ar', 
+      'http2.mlstatic.com',
+      'nexum.com.ar',
     ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com'
+      }
+    ]
   },
 };
 
