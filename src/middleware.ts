@@ -6,9 +6,9 @@ export default withAuth(
     const { pathname } = req.nextUrl;
 
     // ⛔️ No aplicar middleware a /api/auth y /login
-    // if (pathname.startsWith('/api/auth') || pathname.startsWith('/login') || pathname.startsWith('/unauthorized') ||
-    //   pathname.startsWith('/api/mp')) {
-    if (pathname.startsWith('/api/auth') || pathname.startsWith('/login') || pathname.startsWith('/unauthorized')) {
+    if (pathname.startsWith('/api/auth') || pathname.startsWith('/login') || pathname.startsWith('/unauthorized') ||
+      pathname.startsWith('/api/mp')) {
+      // if (pathname.startsWith('/api/auth') || pathname.startsWith('/login') || pathname.startsWith('/unauthorized')) {
       return NextResponse.next();
     }
 
@@ -39,6 +39,6 @@ export default withAuth(
 // Defino qué rutas quiero proteger
 export const config = {
   // matcher: ['/admin/:path*', '/api/cart/:path*', '/api/orders/:path*', '/cart/:path*' ], // o las que necesites
-  matcher: ['/admin/:path*', '/api/cart/:path*', '/api/orders/:path*' ], // o las que necesites
+  matcher: ['/admin/:path*', '/api/cart/:path*', '/api/orders/:path*'], // o las que necesites
 };
 
