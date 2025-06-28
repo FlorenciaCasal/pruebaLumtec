@@ -167,11 +167,22 @@ const MP_SECRET = process.env.MP_SECRET!;
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
+type MercadoPagoNotification = {
+  type?: string;
+  topic?: string;
+  data?: {
+    id?: string | number;
+  };
+  resource?: string | number;
+};
+
 export async function POST(request: NextRequest) {
   const bodyText = await request.text();
   console.log("Notificación recibida:", bodyText);
 
-  let body: any;
+  // let body: any;
+  let body: MercadoPagoNotification;
+
 
   if (!isDevelopment) {
     const signature = request.headers.get("x-mercadopago-signature");
