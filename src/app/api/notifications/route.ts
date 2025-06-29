@@ -186,44 +186,42 @@ function mapPaymentStatus(mpStatus: string): PaymentStatus {
 export async function POST(request: NextRequest) {
   try {
     const bodyText = await request.text();
-    // const headers = Object.fromEntries(request.headers.entries());
     console.log("🔔 Notificación recibida");
     console.log("📝 Body:", bodyText);
     const body = JSON.parse(bodyText);
     console.log("📦 Body parsed:", body);
 
-    // Validación de firma en prod o live_mode
-    // if (process.env.NODE_ENV === "production" || body.live_mode === true) {
-    if (process.env.NODE_ENV === "production" && body.live_mode === true) {
-      // Solo validar firma en producción o live_mode=true
-      const signature = request.headers.get("x-signature");
-      if (!signature) {
-        console.error("❌ Firma faltante");
-        return NextResponse.json({ error: "Signature missing" }, { status: 400 });
-      }
-
-      const ts = signature.match(/t=([^,]*)/)?.[1];
-      const v1Hash = signature.match(/v1=([^,]*)/)?.[1];
-
-      if (!ts || !v1Hash) {
-        console.error("❌ Formato de firma inválido");
-        return NextResponse.json({ error: "Invalid signature format" }, { status: 400 });
-      }
-
-      const generatedHash = crypto
-        .createHmac('sha256', MP_SECRET)
-        .update(`t=${ts}.${bodyText}`)
-        .digest('hex');
-
-      if (v1Hash !== generatedHash) {
-        console.error("❌ Firma inválida", { recibida: v1Hash, calculada: generatedHash });
-        return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
-      }
-    }
-
     const topic = body.topic || body.type;
 
-    if (!["payment", "merchant_order"].includes(topic)) {
+    if (["payment", "merchant_order"].includes(topic)) {
+      // Validar firma solo para estos topics en producción
+      if (process.env.NODE_ENV === "production" && body.live_mode === true) {
+        const signature = request.headers.get("x-signature");
+        if (!signature) {
+          console.error("❌ Firma faltante");
+          return NextResponse.json({ error: "Signature missing" }, { status: 400 });
+        }
+
+        const ts = signature.match(/t=([^,]*)/)?.[1];
+        const v1Hash = signature.match(/v1=([^,]*)/)?.[1];
+
+        if (!ts || !v1Hash) {
+          console.error("❌ Formato de firma inválido");
+          return NextResponse.json({ error: "Invalid signature format" }, { status: 400 });
+        }
+
+        const generatedHash = crypto
+          .createHmac('sha256', MP_SECRET)
+          .update(`t=${ts}.${bodyText}`)
+          .digest('hex');
+
+        if (v1Hash !== generatedHash) {
+          console.error("❌ Firma inválida", { recibida: v1Hash, calculada: generatedHash });
+          return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
+        }
+      }
+    } else {
+      // Para otros topics no manejados, saltear sin validar firma
       console.log("📤 Tipo de notificación no manejada:", topic);
       return NextResponse.json({ message: "Tipo de notificación no manejada" }, { status: 200 });
     }
@@ -270,13 +268,6 @@ export async function POST(request: NextRequest) {
       console.log("🛑 Pago de prueba, ignorando");
       return NextResponse.json({ message: "Test payment ignored" }, { status: 200 });
     }
-
-    // const { status, metadata, additional_info } = paymentData;
-    // const userId = metadata?.userId;
-    // if (!userId) {
-    //   console.error("❌ userId no definido en metadata");
-    //   return NextResponse.json({ error: "Missing userId" }, { status: 400 });
-    // }
 
     const { status, metadata, additional_info } = paymentData;
     const userId = metadata?.userId || metadata?.user_id;
@@ -377,7 +368,7 @@ export async function POST(request: NextRequest) {
             orderId: order.id,
             productId,
             quantity,
-            unitPrice: parseFloat(item.unit_price), 
+            unitPrice: parseFloat(item.unit_price),
           }
         });
       }
