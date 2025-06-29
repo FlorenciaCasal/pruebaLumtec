@@ -193,7 +193,8 @@ export async function POST(request: NextRequest) {
     console.log("📦 Body parsed:", body);
 
     // Validación de firma en prod o live_mode
-    if (process.env.NODE_ENV === "production" || body.live_mode === true) {
+    // if (process.env.NODE_ENV === "production" || body.live_mode === true) {
+    if (process.env.NODE_ENV === "production" && body.live_mode === true) {
       // Solo validar firma en producción o live_mode=true
       const signature = request.headers.get("x-signature");
       if (!signature) {
