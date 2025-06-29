@@ -1,167 +1,3 @@
-// import { NextRequest, NextResponse } from "next/server";
-// import { prisma } from "@/lib/prisma";
-// import crypto from "crypto";
-
-// const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN!;
-// const MP_SECRET = process.env.MP_SECRET!;
-// const isDevelopment = process.env.NODE_ENV !== "production";
-
-// export async function POST(request: NextRequest) {
-//   console.log("Notificación recibida:", await request.text());
-
-//   let body;
-//    let topic: string | null = null;
-//   let paymentId: string | null = null;
-
-//    try {
-//     const { searchParams } = new URL(request.url);
-//     topic = searchParams.get("topic");
-//     paymentId = searchParams.get("id");
-
-//     if (!topic || !paymentId) {
-//       // Si no vino por query params, intentamos leer body
-//   if (!isDevelopment) {
-//     const signature = request.headers.get("x-mercadopago-signature");
-//     if (!signature) return new NextResponse("Signature missing", { status: 400 });
-
-//     const bodyText = await request.text();
-//     const computedSignature = crypto
-//       .createHmac("sha256", MP_SECRET)
-//       .update(bodyText)
-//       .digest("hex");
-
-//     if (computedSignature !== signature)
-//       return new NextResponse("Invalid signature", { status: 403 });
-
-//     body = JSON.parse(bodyText);
-//   } else {
-//     body = await request.json();
-//   }
-
-//   // if (topic !== "payment") return new NextResponse("OK", { status: 200 });
-//   if (topic !== "payment" && topic !== "payment") {
-//     return new NextResponse("OK", { status: 200 });
-//   }
-
-//   const paymentId = body.data.id;
-
-//   const res = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-//     headers: {
-//       Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
-//     },
-//   });
-
-//   if (!res.ok) return new NextResponse("Payment not found", { status: 404 });
-
-//   const paymentData = await res.json();
-//   if (!paymentData.live_mode) return new NextResponse("Prueba recibida OK", { status: 200 });
-
-//   const { status, metadata, additional_info } = paymentData;
-
-//   // if (!metadata?.userId || !additional_info?.items?.length)
-//   //   return new NextResponse("Faltan datos en metadata o items", { status: 400 });
-
-//   // const userId = metadata.userId;
-//   const userId = metadata?.userId;
-//   const items = additional_info?.items;
-//   const cartId = metadata.cartId;
-
-//   if (!userId || !items || items.length === 0) {
-//     return new NextResponse("Faltan datos en metadata o items", { status: 400 });
-//   }
-
-//   // Evitar reprocesar pagos aprobados
-//   const existingPayment = await prisma.payment.findUnique({
-//     where: { paymentId: paymentId.toString() },
-//   });
-
-//   if (existingPayment && existingPayment.status === "approved") {
-//     return new NextResponse("Payment already processed", { status: 200 });
-//   }
-
-//   // Transacción segura
-//   await prisma.$transaction(async (tx) => {
-//     // Actualizar o crear registro de pago
-//     await tx.payment.upsert({
-//       where: { paymentId: paymentId.toString() },
-//       update: {
-//         status,
-//         amount: paymentData.transaction_amount,
-//       },
-//       create: {
-//         paymentId: paymentId.toString(),
-//         status,
-//         amount: paymentData.transaction_amount,
-//         userId,
-//       },
-//     });
-
-//     if (status === "approved") {
-//       if (cartId) {
-//         await tx.cart.update({
-//           where: { id: cartId },
-//           data: { status: "closed" },
-//         });
-//       }
-
-//       // Crear Order principal
-//       const orders = await tx.orders.create({
-//         data: {
-//           userId,
-//           paymentId: paymentId.toString(),
-//           total: paymentData.transaction_amount,
-//           status: "paid",
-//         },
-//       });
-
-//       // for (const item of additional_info.items) {
-//       for (const item of items) {
-//         const productId = item.id;
-//         const quantity = parseInt(item.quantity, 10);
-
-//         const product = await tx.product.findUnique({
-//           where: { id: productId },
-//         });
-
-//         if (!product) continue;
-//         if (product.stock < quantity) continue;
-
-//         await tx.product.update({
-//           where: { id: productId },
-//           data: { stock: { decrement: quantity } },
-//         });
-
-//         // Registrar venta
-//         await tx.sale.create({
-//           data: {
-//             paymentId: paymentId.toString(),
-//             productId,
-//             quantity,
-//             amount: item.unit_price * quantity,
-//             userId,
-//           },
-//         });
-
-//         // Asociar item a la order
-//         await tx.orderItem.create({
-//           data: {
-//             orderId: orders.id,
-//             productId,
-//             quantity,
-//             unitPrice: item.unit_price,
-//           },
-//         });
-//       }
-//     }
-//   });
-
-//   return new NextResponse("OK", { status: 200 });
-// } 
-
-
-// api/notifications/route.ts
-
-
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
@@ -194,7 +30,6 @@ export async function POST(request: NextRequest) {
     const topic = body.topic || body.type;
 
     if (["payment", "merchant_order"].includes(topic)) {
-      // Validar firma solo para estos topics en producción
       if (process.env.NODE_ENV === "production" && body.live_mode === true) {
         const signature = request.headers.get("x-signature");
         if (!signature) {
@@ -221,16 +56,13 @@ export async function POST(request: NextRequest) {
         }
       }
     } else {
-      // Para otros topics no manejados, saltear sin validar firma
       console.log("📤 Tipo de notificación no manejada:", topic);
       return NextResponse.json({ message: "Tipo de notificación no manejada" }, { status: 200 });
     }
 
-    // Extraer paymentId
     let paymentId: string | undefined;
 
     if (topic === "merchant_order") {
-      // Obtener el ID de la orden y luego el pago asociado
       const orderResponse = await fetch(body.resource, {
         headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` },
       });
@@ -240,15 +72,13 @@ export async function POST(request: NextRequest) {
       paymentId = body.data.id;
     }
 
-    // Validar que se haya podido obtener paymentId
     if (!paymentId) {
-      console.log("❌ No se pudo obtener paymentId");
+      console.warn("❌ No se pudo obtener paymentId");
       return NextResponse.json({ message: "Notificación sin paymentId" }, { status: 200 });
     }
 
     console.log("🔍 Procesando paymentId:", paymentId);
 
-    // Obtener detalles del pago
     const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: {
         Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
@@ -264,7 +94,6 @@ export async function POST(request: NextRequest) {
     const paymentData = await mpResponse.json();
     console.log("💳 Datos del pago:", paymentData);
 
-    // Ignorar pagos de prueba
     if (!paymentData.live_mode) {
       console.log("🛑 Pago de prueba, ignorando");
       return NextResponse.json({ message: "Test payment ignored" }, { status: 200 });
@@ -287,7 +116,6 @@ export async function POST(request: NextRequest) {
 
     console.log("📊 Metadata:", { userId, cartId, items });
 
-    // Verificar si el pago ya existe
     const existingPayment = await prisma.payment.findUnique({
       where: { paymentId: paymentId.toString() }
     });
@@ -297,9 +125,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Payment already processed" }, { status: 200 });
     }
 
-    // Procesar el pago
     await prisma.$transaction(async (tx) => {
-      // Actualizar/crear pago con el status mapeado
       await tx.payment.upsert({
         where: { paymentId: paymentId.toString() },
         update: {
@@ -314,13 +140,11 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      // Solo continuar si el pago está aprobado
       if (mapPaymentStatus(status) !== "approved") {
-        console.log(`⏳ Pago no aprobado (${status}), saltando actualización`);
+        console.log(`⏳ Pago no aprobado (${status}), sin procesar stock ni orden`);
         return;
       }
 
-      // Cerrar carrito si existe
       if (cartId) {
         await tx.cart.update({
           where: { id: cartId },
@@ -328,7 +152,6 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Crear orden
       const order = await tx.orders.create({
         data: {
           userId,
@@ -340,7 +163,6 @@ export async function POST(request: NextRequest) {
 
       console.log("📦 Orden creada:", order.id);
 
-      // Procesar items
       for (const item of items) {
         const productId = item.id;
         const quantity = Math.max(1, typeof item.quantity === "string"
@@ -349,7 +171,6 @@ export async function POST(request: NextRequest) {
 
         console.log(`🛒 Procesando item: ${productId}, cantidad: ${quantity}`);
 
-        // Actualizar stock y crear registros
         await tx.product.update({
           where: { id: productId },
           data: { stock: { decrement: quantity } }
