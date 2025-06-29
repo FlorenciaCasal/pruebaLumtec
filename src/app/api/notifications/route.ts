@@ -271,12 +271,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Test payment ignored" }, { status: 200 });
     }
 
+    // const { status, metadata, additional_info } = paymentData;
+    // const userId = metadata?.userId;
+    // if (!userId) {
+    //   console.error("❌ userId no definido en metadata");
+    //   return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+    // }
+
     const { status, metadata, additional_info } = paymentData;
-    const userId = metadata?.userId;
+    const userId = metadata?.userId || metadata?.user_id;
     if (!userId) {
       console.error("❌ userId no definido en metadata");
       return NextResponse.json({ error: "Missing userId" }, { status: 400 });
     }
+
     const items = additional_info?.items || [];
     if (items.length === 0) {
       console.error("❌ No hay items en el pago");
