@@ -187,13 +187,15 @@ export async function POST(request: NextRequest) {
   try {
     const bodyText = await request.text();
     // const headers = Object.fromEntries(request.headers.entries());
-
     console.log("🔔 Notificación recibida");
     console.log("📝 Body:", bodyText);
+    const body = JSON.parse(bodyText);
+    console.log("📦 Body parsed:", body);
 
     // Validación de firma (omitiendo en desarrollo)
-    if (process.env.NODE_ENV === "production") {
-      // const signature = headers['x-signature'];
+    // En api/notifications/route.ts
+    if (process.env.NODE_ENV === "production" || body.live_mode === true) {
+      // Solo validar firma en producción o live_mode=true
       const signature = request.headers.get("x-signature");
       if (!signature) {
         console.error("❌ Firma faltante");
@@ -205,23 +207,15 @@ export async function POST(request: NextRequest) {
 
       const generatedHash = crypto
         .createHmac('sha256', MP_SECRET)
-        // .update(`${timestamp}.${bodyText}`)
         .update(`${tsPart}.${bodyText}`)
         .digest('hex');
 
       if (v1Hash !== generatedHash) {
-        console.error("❌ Firma inválida", {
-          recibida: v1Hash,
-          calculada: generatedHash,
-          body: bodyText, // Para debug
-          tsPart,        // Para debug
-        });
+        console.error("❌ Firma inválida", { recibida: v1Hash, calculada: generatedHash });
         return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
       }
     }
 
-    const body = JSON.parse(bodyText);
-    console.log("📦 Body parsed:", body);
 
     // Extraer paymentId
     let paymentId: string | undefined;
