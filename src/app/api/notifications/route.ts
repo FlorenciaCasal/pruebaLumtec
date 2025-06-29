@@ -207,16 +207,17 @@ export async function POST(request: NextRequest) {
     body = JSON.parse(bodyText);
   }
 
-  if (!isPaymentTypeNotification(body) && !isPaymentTopicNotification(body)) {
-    return new NextResponse("OK", { status: 200 });
-  }
-
   let paymentId: string | number;
-
+  // if (!isPaymentTypeNotification(body) && !isPaymentTopicNotification(body)) {
+  //   return new NextResponse("OK", { status: 200 });
+  // }
   if (isPaymentTypeNotification(body)) {
     paymentId = body.data.id;
-  } else {
+  } else if (isPaymentTopicNotification(body)) {
     paymentId = body.resource;
+  } else {
+    // Notificación no relevante (ej: merchant_order)
+    return new NextResponse("OK", { status: 200 });
   }
 
   console.log("Procesando paymentId:", paymentId);
