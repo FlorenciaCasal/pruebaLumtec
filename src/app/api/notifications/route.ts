@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Signature missing" }, { status: 400 });
       }
 
-      const ts = signature.match(/ts=([^,]*)/)?.[1];
+      const ts = signature.match(/t=([^,]*)/)?.[1];
       const v1Hash = signature.match(/v1=([^,]*)/)?.[1];
 
       if (!ts || !v1Hash) {
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
 
       const generatedHash = crypto
         .createHmac('sha256', MP_SECRET)
-        .update(`ts=${ts}.${bodyText}`)
+        .update(`t=${ts}.${bodyText}`)
         .digest('hex');
 
       if (v1Hash !== generatedHash) {
