@@ -158,140 +158,149 @@
 //   return new NextResponse("OK", { status: 200 });
 // } 
 
+
+// api/notifications/route.ts
+
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
+import { PaymentStatus, OrderStatus } from '@prisma/client';
 
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN!;
 const MP_SECRET = process.env.MP_SECRET!;
 
-const isDevelopment = process.env.NODE_ENV !== "production";
-
-// Type guards para discriminar tipos
-function isPaymentTypeNotification(
-  obj: unknown
-): obj is { type: "payment"; data: { id: string | number } } {
-  if (typeof obj !== "object" || obj === null) return false;
-  const data = obj as Record<string, unknown>;
-  return (
-    data.type === "payment" &&
-    typeof (data.data as Record<string, unknown>)?.id !== "undefined"
-  );
-}
-
-function isPaymentTopicNotification(
-  obj: unknown
-): obj is { topic: "payment"; resource: string | number } {
-  if (typeof obj !== "object" || obj === null) return false;
-  const data = obj as Record<string, unknown>;
-  return (
-    data.topic === "payment" &&
-    typeof data.resource !== "undefined"
-  );
+function mapPaymentStatus(mpStatus: string): PaymentStatus {
+  const statusMap: Record<string, PaymentStatus> = {
+    pending: 'pending',
+    approved: 'approved',
+    rejected: 'rejected',
+    cancelled: 'cancelled',
+    in_process: 'pending',
+    in_mediation: 'pending',
+    charged_back: 'rejected'
+  };
+  return statusMap[mpStatus.toLowerCase()] || 'pending';
 }
 
 export async function POST(request: NextRequest) {
-  const bodyText = await request.text();
-  console.log("Notificación recibida:", bodyText);
-  console.log("HEADERS:", request.headers);
+  try {
+    const bodyText = await request.text();
+    const headers = Object.fromEntries(request.headers.entries());
 
-  // let body: MercadoPagoNotification;
+    console.log("🔔 Notificación recibida");
+    console.log("📝 Body:", bodyText);
 
+    // Validación de firma (omitiendo en desarrollo)
+    if (process.env.NODE_ENV === "production") {
+      const signature = headers['x-signature'];
+      if (!signature) {
+        console.error("❌ Firma faltante");
+        return NextResponse.json({ error: "Signature missing" }, { status: 400 });
+      }
 
-  if (!isDevelopment) {
-    const signature = request.headers.get("x-mercadopago-signature");
-    if (!signature) return new NextResponse("Signature missing", { status: 400 });
+      const [timestamp, receivedHash] = signature.split(',');
+      const [_, v1Hash] = receivedHash.split('=');
 
-    const computedSignature = crypto
-      .createHmac("sha256", MP_SECRET)
-      .update(bodyText)
-      .digest("hex");
+      const generatedHash = crypto
+        .createHmac('sha256', MP_SECRET)
+        .update(`${timestamp}.${bodyText}`)
+        .digest('hex');
 
-    if (computedSignature !== signature)
-      return new NextResponse("Invalid signature", { status: 403 });
-  }
-  // Ahora sí parsear el body una vez
-  const body = JSON.parse(bodyText) as unknown;
+      if (v1Hash !== generatedHash) {
+        console.error("❌ Firma inválida");
+        return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
+      }
+    }
 
-  let paymentId: string | number;
-  // if (!isPaymentTypeNotification(body) && !isPaymentTopicNotification(body)) {
-  //   return new NextResponse("OK", { status: 200 });
-  // }
-  if (isPaymentTypeNotification(body)) {
-    paymentId = body.data.id;
-  } else if (isPaymentTopicNotification(body)) {
-    paymentId = body.resource;
-  } else {
-    // Notificación no relevante (ej: merchant_order)
-    return new NextResponse("OK", { status: 200 });
-  }
+    const body = JSON.parse(bodyText);
+    console.log("📦 Body parsed:", body);
 
-  console.log("Procesando paymentId:", paymentId);
+    // Extraer paymentId
+    let paymentId: string | undefined;
 
-  // Buscar el pago en la API de Mercado Pago
-  const res = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-    headers: {
-      Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
-    },
-  });
+    if (body.type === "payment") {
+      paymentId = body.data?.id;
+    } else if (body.topic === "payment") {
+      paymentId = body.resource;
+    } else if (body.action?.includes("payment")) {
+      paymentId = body.data?.id;
+    }
 
-  if (!res.ok) return new NextResponse("Payment not found", { status: 404 });
+    if (!paymentId) {
+      console.log("⚠️ Notificación no relevante");
+      return NextResponse.json({ message: "OK" }, { status: 200 });
+    }
 
-  const paymentData = await res.json();
+    console.log("🔍 Procesando paymentId:", paymentId);
 
-  console.log("Datos del pago desde MP:", paymentData);
-
-  if (!paymentData.live_mode) return new NextResponse("Prueba recibida OK", { status: 200 });
-
-  const { status, metadata, additional_info } = paymentData;
-  const userId = metadata?.userId;
-
-  type Item = {
-    id: string;
-    quantity: number | string;
-    unit_price: number;
-  };
-
-  const items: Item[] = additional_info?.items;
-  const cartId = metadata?.cartId;
-
-  if (!userId || !items || items.length === 0) {
-    console.log("Faltan datos en metadata o items:", { userId, items });
-    return new NextResponse("Faltan datos en metadata o items", { status: 400 });
-  }
-
-  // Verificar si el pago ya se procesó
-  const existingPayment = await prisma.payment.findUnique({
-    where: { paymentId: paymentId.toString() },
-  });
-
-  if (existingPayment && existingPayment.status === "approved") {
-    return new NextResponse("Payment already processed", { status: 200 });
-  }
-
-  // Transacción segura
-  await prisma.$transaction(async (tx) => {
-    // Registrar o actualizar el pago
-    await tx.payment.upsert({
-      where: { paymentId: paymentId.toString() },
-      update: {
-        status,
-        amount: paymentData.transaction_amount,
-      },
-      create: {
-        paymentId: paymentId.toString(),
-        status,
-        amount: paymentData.transaction_amount,
-        userId,
-      },
+    // Obtener detalles del pago
+    const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+      headers: {
+        Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
+        "Content-Type": "application/json"
+      }
     });
 
-    if (status === "approved") {
-      // Cerrar carrito
+    if (!mpResponse.ok) {
+      console.error("❌ Error al obtener pago de MP");
+      return NextResponse.json({ error: "Payment not found" }, { status: 404 });
+    }
+
+    const paymentData = await mpResponse.json();
+    console.log("💳 Datos del pago:", paymentData);
+
+    // Ignorar pagos de prueba
+    if (!paymentData.live_mode) {
+      console.log("🛑 Pago de prueba, ignorando");
+      return NextResponse.json({ message: "Test payment ignored" }, { status: 200 });
+    }
+
+    const { status, metadata, additional_info } = paymentData;
+    const userId = metadata?.userId;
+    const items = additional_info?.items || [];
+    const cartId = metadata?.cartId;
+
+    console.log("📊 Metadata:", { userId, cartId, items });
+
+    // Verificar si el pago ya existe
+    const existingPayment = await prisma.payment.findUnique({
+      where: { paymentId: paymentId.toString() }
+    });
+
+    if (existingPayment?.status === "approved") {
+      console.log("🔄 Pago ya aprobado");
+      return NextResponse.json({ message: "Payment already processed" }, { status: 200 });
+    }
+
+    // Procesar el pago
+    await prisma.$transaction(async (tx) => {
+      // Actualizar/crear pago con el status mapeado
+      await tx.payment.upsert({
+        where: { paymentId: paymentId.toString() },
+        update: {
+          status: mapPaymentStatus(status),
+          amount: paymentData.transaction_amount
+        },
+        create: {
+          paymentId: paymentId.toString(),
+          status: mapPaymentStatus(status),
+          amount: paymentData.transaction_amount,
+          userId
+        }
+      });
+
+      // Solo continuar si el pago está aprobado
+      if (mapPaymentStatus(status) !== "approved") {
+        console.log(`⏳ Pago no aprobado (${status}), saltando actualización`);
+        return;
+      }
+
+      // Cerrar carrito si existe
       if (cartId) {
         await tx.cart.update({
           where: { id: cartId },
-          data: { status: "closed" },
+          data: { status: "closed" }
         });
       }
 
@@ -301,25 +310,25 @@ export async function POST(request: NextRequest) {
           userId,
           paymentId: paymentId.toString(),
           total: paymentData.transaction_amount,
-          status: "paid",
-        },
+          status: "paid" as OrderStatus
+        }
       });
 
-      // Procesar cada item vendido
+      console.log("📦 Orden creada:", order.id);
+
+      // Procesar items
       for (const item of items) {
         const productId = item.id;
-        const quantity = typeof item.quantity === "string" ? parseInt(item.quantity, 10) : item.quantity;
+        const quantity = typeof item.quantity === "string"
+          ? parseInt(item.quantity, 10)
+          : item.quantity;
 
-        const product = await tx.product.findUnique({
-          where: { id: productId },
-        });
+        console.log(`🛒 Procesando item: ${productId}, cantidad: ${quantity}`);
 
-        if (!product) continue;
-        if (product.stock < quantity) continue;
-
+        // Actualizar stock y crear registros
         await tx.product.update({
           where: { id: productId },
-          data: { stock: { decrement: quantity } },
+          data: { stock: { decrement: quantity } }
         });
 
         await tx.sale.create({
@@ -328,8 +337,8 @@ export async function POST(request: NextRequest) {
             productId,
             quantity,
             amount: item.unit_price * quantity,
-            userId,
-          },
+            userId
+          }
         });
 
         await tx.orderItem.create({
@@ -337,20 +346,20 @@ export async function POST(request: NextRequest) {
             orderId: order.id,
             productId,
             quantity,
-            unitPrice: item.unit_price,
-          },
+            unitPrice: item.unit_price
+          }
         });
       }
-    }
-  });
+    });
 
-  return new NextResponse("OK", { status: 200 });
+    console.log("✅ Pago procesado correctamente");
+    return NextResponse.json({ success: true }, { status: 200 });
+
+  } catch (error) {
+    console.error("🔥 Error en webhook:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
-
-
-
-
-
-
-
-
