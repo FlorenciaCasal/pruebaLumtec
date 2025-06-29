@@ -28,10 +28,20 @@ export default function CheckoutCartButton() {
     setLoading(true);
 
     // 🎯 Mapear los items al formato de Mercado Pago
+    // const mpItems = items.map((item) => ({
+    //   id: item.cartItemId,
+    //   productId: item.productId,
+    //   title: item.name, // tu carrito usa `name`, MP espera `title`
+    //   quantity: item.quantity,
+    //   currency_id: "ARS",
+    //   unit_price: item.price,
+    // }));
+    
+    // Para MercadoPago: id debe ser productId
     const mpItems = items.map((item) => ({
-      id: item.cartItemId,
+      id: item.productId,      // ✅ usar el id del producto, no del cartItem
       productId: item.productId,
-      title: item.name, // tu carrito usa `name`, MP espera `title`
+      title: item.name,
       quantity: item.quantity,
       currency_id: "ARS",
       unit_price: item.price,
@@ -40,8 +50,8 @@ export default function CheckoutCartButton() {
     console.log("Items para MP:", mpItems);
 
 
-     const res = await fetch("/api/mp/create_cart_preference", {
-   // const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/mp/create_cart_preference`, {
+    const res = await fetch("/api/mp/create_cart_preference", {
+      // const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/mp/create_cart_preference`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(mpItems),
