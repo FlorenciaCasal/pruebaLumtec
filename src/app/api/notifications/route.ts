@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
       }
 
       const [timestamp, receivedHash] = signature.split(',');
-      const [_, v1Hash] = receivedHash.split('=');
+      const [ v1Hash] = receivedHash.split('=');
 
       const generatedHash = crypto
         .createHmac('sha256', MP_SECRET)
