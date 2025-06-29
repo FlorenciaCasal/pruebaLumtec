@@ -239,6 +239,7 @@ export async function POST(request: NextRequest) {
     } else if (topic === "payment") {
       paymentId = body.data.id;
     }
+
     // Validar que se haya podido obtener paymentId
     if (!paymentId) {
       console.log("❌ No se pudo obtener paymentId");
@@ -271,17 +272,18 @@ export async function POST(request: NextRequest) {
 
     const { status, metadata, additional_info } = paymentData;
     const userId = metadata?.userId || metadata?.user_id;
+    const items = additional_info?.items || [];
+    const cartId = metadata?.cartId;
+
     if (!userId) {
-      console.error("❌ userId no definido en metadata");
-      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+      console.warn("⚠️ userId no definido en metadata, se omite procesamiento");
+      return NextResponse.json({ message: "Missing userId, ignoring" }, { status: 200 });
     }
 
-    const items = additional_info?.items || [];
     if (items.length === 0) {
-      console.error("❌ No hay items en el pago");
-      return NextResponse.json({ error: "Missing items" }, { status: 400 });
+      console.warn("⚠️ No hay items en el pago, se omite procesamiento");
+      return NextResponse.json({ message: "Missing items, ignoring" }, { status: 200 });
     }
-    const cartId = metadata?.cartId;
 
     console.log("📊 Metadata:", { userId, cartId, items });
 
