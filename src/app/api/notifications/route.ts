@@ -188,7 +188,8 @@ export async function POST(request: NextRequest) {
   const bodyText = await request.text();
   console.log("Notificación recibida:", bodyText);
 
-  let body: MercadoPagoNotification;
+  // let body: MercadoPagoNotification;
+
 
   if (!isDevelopment) {
     const signature = request.headers.get("x-mercadopago-signature");
@@ -201,11 +202,10 @@ export async function POST(request: NextRequest) {
 
     if (computedSignature !== signature)
       return new NextResponse("Invalid signature", { status: 403 });
-
-    body = JSON.parse(bodyText);
-  } else {
-    body = JSON.parse(bodyText);
   }
+  // Ahora sí parsear el body una vez
+  const body = JSON.parse(bodyText) as unknown;
+
 
   let paymentId: string | number;
   // if (!isPaymentTypeNotification(body) && !isPaymentTopicNotification(body)) {
@@ -219,6 +219,9 @@ export async function POST(request: NextRequest) {
     // Notificación no relevante (ej: merchant_order)
     return new NextResponse("OK", { status: 200 });
   }
+
+
+
 
   console.log("Procesando paymentId:", paymentId);
 
