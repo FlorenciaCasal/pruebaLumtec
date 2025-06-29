@@ -69,8 +69,10 @@ export async function POST(request: NextRequest) {
       const orderData = await orderResponse.json();
       paymentId = orderData.payments?.[0]?.id;
     } else if (topic === "payment") {
-      paymentId = body.data.id;
+      paymentId = body.data.id || body.resource;
     }
+
+    console.log("📨 Webhook completo:", JSON.stringify(body, null, 2));
 
     if (!paymentId) {
       console.warn("❌ No se pudo obtener paymentId");
