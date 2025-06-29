@@ -377,7 +377,7 @@ export async function POST(request: NextRequest) {
             orderId: order.id,
             productId,
             quantity,
-            unitPrice: item.unit_price
+            unitPrice: parseFloat(item.unit_price), 
           }
         });
       }

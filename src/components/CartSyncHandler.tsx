@@ -15,15 +15,6 @@ type ApiCartItem = {
     };
 };
 
-// type CartItem = {
-//     cartItemId: string;
-//     productId: string;
-//     name: string;
-//     price: number;
-//     quantity: number;
-//     images: { url: string }[];
-// };
-
 export default function CartSyncHandler() {
     const dispatch = useDispatch();
     const { status } = useSession();
