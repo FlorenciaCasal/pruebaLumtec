@@ -200,9 +200,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Signature missing" }, { status: 400 });
       }
 
-      // const [timestamp, receivedHash] = signature.split(',');
-      // const [v1Hash] = receivedHash.split('=');
-      // Extraer ts y v1 (ej: "ts=123456789,v1=abc123")
       const [tsPart, v1Part] = signature.split(",");
       const v1Hash = v1Part.split("=")[1];
 
@@ -212,14 +209,12 @@ export async function POST(request: NextRequest) {
         .update(`${tsPart}.${bodyText}`)
         .digest('hex');
 
-      // if (v1Hash !== generatedHash) {
-      //   console.error("❌ Firma inválida");
-      //   return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
-      // }
       if (v1Hash !== generatedHash) {
         console.error("❌ Firma inválida", {
           recibida: v1Hash,
           calculada: generatedHash,
+          body: bodyText, // Para debug
+          tsPart,        // Para debug
         });
         return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
       }
@@ -244,19 +239,6 @@ export async function POST(request: NextRequest) {
 
     if (!paymentId) {
       return NextResponse.json({ message: "Notificación no manejada" }, { status: 200 });
-    }
-
-    // if (body.type === "payment") {
-    //   paymentId = body.data?.id;
-    // } else if (body.topic === "payment") {
-    //   paymentId = body.resource;
-    // } else if (body.action?.includes("payment")) {
-    //   paymentId = body.data?.id;
-    // }
-
-    if (!paymentId) {
-      console.log("⚠️ Notificación no relevante");
-      return NextResponse.json({ message: "OK" }, { status: 200 });
     }
 
     console.log("🔍 Procesando paymentId:", paymentId);
@@ -285,7 +267,15 @@ export async function POST(request: NextRequest) {
 
     const { status, metadata, additional_info } = paymentData;
     const userId = metadata?.userId;
+    if (!userId) {
+      console.error("❌ userId no definido en metadata");
+      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+    }
     const items = additional_info?.items || [];
+    if (items.length === 0) {
+      console.error("❌ No hay items en el pago");
+      return NextResponse.json({ error: "Missing items" }, { status: 400 });
+    }
     const cartId = metadata?.cartId;
 
     console.log("📊 Metadata:", { userId, cartId, items });
@@ -346,9 +336,9 @@ export async function POST(request: NextRequest) {
       // Procesar items
       for (const item of items) {
         const productId = item.id;
-        const quantity = typeof item.quantity === "string"
+        const quantity = Math.max(1, typeof item.quantity === "string"
           ? parseInt(item.quantity, 10)
-          : item.quantity;
+          : item.quantity || 1);
 
         console.log(`🛒 Procesando item: ${productId}, cantidad: ${quantity}`);
 
