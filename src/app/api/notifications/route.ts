@@ -186,29 +186,41 @@ function mapPaymentStatus(mpStatus: string): PaymentStatus {
 export async function POST(request: NextRequest) {
   try {
     const bodyText = await request.text();
-    const headers = Object.fromEntries(request.headers.entries());
+    // const headers = Object.fromEntries(request.headers.entries());
 
     console.log("🔔 Notificación recibida");
     console.log("📝 Body:", bodyText);
 
     // Validación de firma (omitiendo en desarrollo)
     if (process.env.NODE_ENV === "production") {
-      const signature = headers['x-signature'];
+      // const signature = headers['x-signature'];
+      const signature = request.headers.get("x-signature");
       if (!signature) {
         console.error("❌ Firma faltante");
         return NextResponse.json({ error: "Signature missing" }, { status: 400 });
       }
 
-      const [timestamp, receivedHash] = signature.split(',');
-      const [ v1Hash] = receivedHash.split('=');
+      // const [timestamp, receivedHash] = signature.split(',');
+      // const [v1Hash] = receivedHash.split('=');
+      // Extraer ts y v1 (ej: "ts=123456789,v1=abc123")
+      const [tsPart, v1Part] = signature.split(",");
+      const v1Hash = v1Part.split("=")[1];
 
       const generatedHash = crypto
         .createHmac('sha256', MP_SECRET)
-        .update(`${timestamp}.${bodyText}`)
+        // .update(`${timestamp}.${bodyText}`)
+        .update(`${tsPart}.${bodyText}`)
         .digest('hex');
 
+      // if (v1Hash !== generatedHash) {
+      //   console.error("❌ Firma inválida");
+      //   return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
+      // }
       if (v1Hash !== generatedHash) {
-        console.error("❌ Firma inválida");
+        console.error("❌ Firma inválida", {
+          recibida: v1Hash,
+          calculada: generatedHash,
+        });
         return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
       }
     }
@@ -219,13 +231,28 @@ export async function POST(request: NextRequest) {
     // Extraer paymentId
     let paymentId: string | undefined;
 
-    if (body.type === "payment") {
-      paymentId = body.data?.id;
-    } else if (body.topic === "payment") {
-      paymentId = body.resource;
-    } else if (body.action?.includes("payment")) {
-      paymentId = body.data?.id;
+    if (body.topic === "merchant_order") {
+      // Obtener el ID de la orden y luego el pago asociado
+      const orderResponse = await fetch(body.resource, {
+        headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` },
+      });
+      const orderData = await orderResponse.json();
+      paymentId = orderData.payments?.[0]?.id;
+    } else if (body.type === "payment") {
+      paymentId = body.data.id;
     }
+
+    if (!paymentId) {
+      return NextResponse.json({ message: "Notificación no manejada" }, { status: 200 });
+    }
+
+    // if (body.type === "payment") {
+    //   paymentId = body.data?.id;
+    // } else if (body.topic === "payment") {
+    //   paymentId = body.resource;
+    // } else if (body.action?.includes("payment")) {
+    //   paymentId = body.data?.id;
+    // }
 
     if (!paymentId) {
       console.log("⚠️ Notificación no relevante");
