@@ -167,21 +167,23 @@ const MP_SECRET = process.env.MP_SECRET!;
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
-type MercadoPagoNotification =
-  | { action?: string; type: "payment"; data: { id: string | number } }
-  | { topic: "payment"; resource: string | number };
-
 // Type guards para discriminar tipos
 function isPaymentTypeNotification(
-  obj: any
+  obj: unknown
 ): obj is { type: "payment"; data: { id: string | number } } {
-  return obj?.type === "payment" && typeof obj.data?.id !== "undefined";
+  return typeof obj === "object" && obj !== null &&
+    "type" in obj &&
+    (obj as any).type === "payment" &&
+    typeof (obj as any).data?.id !== "undefined";
 }
 
 function isPaymentTopicNotification(
-  obj: any
+  obj: unknown
 ): obj is { topic: "payment"; resource: string | number } {
-  return obj?.topic === "payment" && typeof obj.resource !== "undefined";
+  return typeof obj === "object" && obj !== null &&
+    "topic" in obj &&
+    (obj as any).topic === "payment" &&
+    typeof (obj as any).resource !== "undefined";
 }
 
 export async function POST(request: NextRequest) {
