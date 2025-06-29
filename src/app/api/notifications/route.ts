@@ -38,8 +38,8 @@
 //     body = await request.json();
 //   }
 
-//   // if (body.type !== "payment") return new NextResponse("OK", { status: 200 });
-//   if (body.type !== "payment" && body.topic !== "payment") {
+//   // if (topic !== "payment") return new NextResponse("OK", { status: 200 });
+//   if (topic !== "payment" && topic !== "payment") {
 //     return new NextResponse("OK", { status: 200 });
 //   }
 
@@ -221,22 +221,30 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const topic = body.topic || body.type;
+
+    if (!["payment", "merchant_order"].includes(topic)) {
+      console.log("📤 Tipo de notificación no manejada:", topic);
+      return NextResponse.json({ message: "Tipo de notificación no manejada" }, { status: 200 });
+    }
+
     // Extraer paymentId
     let paymentId: string | undefined;
 
-    if (body.topic === "merchant_order") {
+    if (topic === "merchant_order") {
       // Obtener el ID de la orden y luego el pago asociado
       const orderResponse = await fetch(body.resource, {
         headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` },
       });
       const orderData = await orderResponse.json();
       paymentId = orderData.payments?.[0]?.id;
-    } else if (body.type === "payment") {
+    } else if (topic === "payment") {
       paymentId = body.data.id;
     }
-
+    // Validar que se haya podido obtener paymentId
     if (!paymentId) {
-      return NextResponse.json({ message: "Notificación no manejada" }, { status: 200 });
+      console.log("❌ No se pudo obtener paymentId");
+      return NextResponse.json({ message: "Notificación sin paymentId" }, { status: 200 });
     }
 
     console.log("🔍 Procesando paymentId:", paymentId);
