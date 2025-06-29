@@ -66,15 +66,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No hay carrito activo" }, { status: 400 });
     }
 
-    // Configurar preferencia de pago
-    // const preference = {
-    //   items: items.map((item: CartItem) => ({
-    //   id: item.id,
-    //   title: item.title,
-    //   quantity: item.quantity,
-    //   unit_price: item.unit_price,
-    //   currency_id: "ARS",
-    // })),
 
     const preference = {
       items: items.map((item: CartItem) => {

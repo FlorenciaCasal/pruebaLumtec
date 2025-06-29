@@ -7,7 +7,7 @@ export default withAuth(
 
     // ⛔️ No aplicar middleware a /api/auth y /login
     if (pathname.startsWith('/api/auth') || pathname.startsWith('/login') || pathname.startsWith('/unauthorized') ||
-      pathname.startsWith('/api/mp')) {
+      pathname.startsWith('/api/mp') || pathname.startsWith('/api/notifications')) {
       // if (pathname.startsWith('/api/auth') || pathname.startsWith('/login') || pathname.startsWith('/unauthorized')) {
       return NextResponse.next();
     }

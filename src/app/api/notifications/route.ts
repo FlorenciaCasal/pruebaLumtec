@@ -193,6 +193,7 @@ function isPaymentTopicNotification(
 export async function POST(request: NextRequest) {
   const bodyText = await request.text();
   console.log("Notificación recibida:", bodyText);
+  console.log("HEADERS:", request.headers);
 
   // let body: MercadoPagoNotification;
 
@@ -212,7 +213,6 @@ export async function POST(request: NextRequest) {
   // Ahora sí parsear el body una vez
   const body = JSON.parse(bodyText) as unknown;
 
-
   let paymentId: string | number;
   // if (!isPaymentTypeNotification(body) && !isPaymentTopicNotification(body)) {
   //   return new NextResponse("OK", { status: 200 });
@@ -226,9 +226,6 @@ export async function POST(request: NextRequest) {
     return new NextResponse("OK", { status: 200 });
   }
 
-
-
-
   console.log("Procesando paymentId:", paymentId);
 
   // Buscar el pago en la API de Mercado Pago
@@ -241,6 +238,9 @@ export async function POST(request: NextRequest) {
   if (!res.ok) return new NextResponse("Payment not found", { status: 404 });
 
   const paymentData = await res.json();
+
+  console.log("Datos del pago desde MP:", paymentData);
+
   if (!paymentData.live_mode) return new NextResponse("Prueba recibida OK", { status: 200 });
 
   const { status, metadata, additional_info } = paymentData;
@@ -256,6 +256,7 @@ export async function POST(request: NextRequest) {
   const cartId = metadata?.cartId;
 
   if (!userId || !items || items.length === 0) {
+    console.log("Faltan datos en metadata o items:", { userId, items });
     return new NextResponse("Faltan datos en metadata o items", { status: 400 });
   }
 
