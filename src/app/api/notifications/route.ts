@@ -171,19 +171,23 @@ const isDevelopment = process.env.NODE_ENV !== "production";
 function isPaymentTypeNotification(
   obj: unknown
 ): obj is { type: "payment"; data: { id: string | number } } {
-  return typeof obj === "object" && obj !== null &&
-    "type" in obj &&
-    (obj as any).type === "payment" &&
-    typeof (obj as any).data?.id !== "undefined";
+  if (typeof obj !== "object" || obj === null) return false;
+  const data = obj as Record<string, unknown>;
+  return (
+    data.type === "payment" &&
+    typeof (data.data as Record<string, unknown>)?.id !== "undefined"
+  );
 }
 
 function isPaymentTopicNotification(
   obj: unknown
 ): obj is { topic: "payment"; resource: string | number } {
-  return typeof obj === "object" && obj !== null &&
-    "topic" in obj &&
-    (obj as any).topic === "payment" &&
-    typeof (obj as any).resource !== "undefined";
+  if (typeof obj !== "object" || obj === null) return false;
+  const data = obj as Record<string, unknown>;
+  return (
+    data.topic === "payment" &&
+    typeof data.resource !== "undefined"
+  );
 }
 
 export async function POST(request: NextRequest) {
