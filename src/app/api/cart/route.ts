@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
             product: {
               include: {
                 images: true,  // aquí traemos las imágenes del producto
+                packages: true,
               }
             }
           }
@@ -64,8 +65,11 @@ export async function POST(request: NextRequest) {
           product: {
             id: item.product.id, // asegurado
             name: item.product.name,
+            brand: item.product.brand,
             price: item.product.price,
             images: item.product.images,
+            type: item.product.type,
+            packages: item.product.packages
           }
         }))
       }, removedProducts
@@ -93,7 +97,8 @@ export async function GET() {
           include: {
             product: {
               include: {
-                images: true, // traer las imágenes del producto
+                images: true,
+                packages: true, // traer las imágenes del producto
               }
             }
           }
@@ -114,6 +119,7 @@ export async function GET() {
             product: {
               include: {
                 images: true,
+                packages: true,
               },
             },
           },
@@ -122,14 +128,18 @@ export async function GET() {
     });
 
     return NextResponse.json({
+      id: updatedCart!.id,
       items: updatedCart!.items.map(item => ({
         id: item.id,
         quantity: item.quantity,
         product: {
           id: item.product.id, // asegurado
           name: item.product.name,
+          brand: item.product.brand,
           price: item.product.price,
           images: item.product.images,
+          type: item.product.type,
+          packages: item.product.packages
         }
       })), removedProducts
     });

@@ -1,6 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ProductImage } from '@/types/productImage.types';
 
+type Package = {
+  id: string;
+  weightKg: number;
+  widthCm: number;
+  heightCm: number;
+  depthCm: number;
+  quantity: number;
+};
 
 type CartItem = {
   cartItemId: string;
@@ -9,13 +17,17 @@ type CartItem = {
   price: number;
   quantity: number;
   images: ProductImage[];
+  type: string;
+  packages: Package[];
 };
 
 type CartState = {
+  cartId: string | null;
   items: CartItem[];
 };
 
 const initialState: CartState = {
+  cartId: null,
   items: [],
 };
 
@@ -25,6 +37,9 @@ export const cartSlice = createSlice({
   reducers: {
     setCartItems(state, action: PayloadAction<CartItem[]>) {
       state.items = action.payload;
+    },
+    setCartId(state, action: PayloadAction<string>) {
+      state.cartId = action.payload;
     },
     addToCart: (state, action: PayloadAction<CartItem>) => {
       const itemIndex = state.items.findIndex(item => item.cartItemId === action.payload.cartItemId);
@@ -47,9 +62,10 @@ export const cartSlice = createSlice({
     },
     clearCart: (state) => {
       state.items = [];
+      state.cartId = null;
     },
   },
 });
 
-export const { addToCart, removeFromCart, incrementQuantity, decrementQuantity, clearCart, setCartItems } = cartSlice.actions;
+export const { addToCart, removeFromCart, incrementQuantity, decrementQuantity, clearCart, setCartItems, setCartId } = cartSlice.actions;
 export default cartSlice.reducer;

@@ -28,14 +28,6 @@ export default function ProductImages({ images, productName }: Props) {
             {/* Miniaturas */}
             <div className="hidden md:flex md:flex-col gap-2 md:w-1/4 justify-around">
                 {images.map((img, idx) => (
-                    // <img
-                    //     key={img.id}
-                    //     src={img.url}
-                    //     alt={productName}
-                    //     onClick={() => setSelectedIndex(idx)}
-                    //     className={`cursor-pointer rounded border-2 transition-all ${selectedIndex === idx ? 'border-gray-800' : 'border-transparent'
-                    //         } hover:opacity-80 object-cover w-full h-20`}
-                    // />
                     <div
                         key={img.id}
                         onClick={() => setSelectedIndex(idx)}
@@ -84,14 +76,6 @@ export default function ProductImages({ images, productName }: Props) {
                 {/* Miniaturas horizontales en mobile */}
                 <div className="flex md:hidden overflow-x-auto gap-2 mt-4">
                     {images.map((img, idx) => (
-                        // <img
-                        //     key={img.id}
-                        //     src={img.url}
-                        //     alt={productName}
-                        //     onClick={() => setSelectedIndex(idx)}
-                        //     className={`cursor-pointer rounded border-2 flex-shrink-0 w-20 h-20 object-cover ${selectedIndex === idx ? 'border-blue-500' : 'border-transparent'
-                        //         }`}
-                        // />
                         <div
                             key={img.id}
                             onClick={() => setSelectedIndex(idx)}

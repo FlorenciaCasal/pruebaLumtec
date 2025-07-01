@@ -26,6 +26,11 @@ enum PaymentStatus {
   cancelled
 }
 
+enum ProductType {
+  SINGLE
+  KIT
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -84,22 +89,33 @@ model VerificationToken {
 model Product {
   id          String         @id @default(cuid())
   name        String         @unique
+  brand       String         @default("")
   description String         @db.Text 
   price       Float
   stock       Int
   category    String
-  weightKg    Float
-  widthCm     Float
-  heightCm    Float
-  depthCm     Float
+  type        ProductType    @default(SINGLE) // SINGLE o KIT
+  packages    Package[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
-  sales       Sale[] // Relación con Sale
+  sales       Sale[]         // Relación con Sale
   images      ProductImage[] // relación 1 a N con las imágenes
   cartItems   CartItem[]     // ⬅️ relación inversa: un producto puede estar en varios CartItem
   orderItems  OrderItem[]
 
   @@index([createdAt])
+}
+
+model Package {
+  id        String   @id @default(cuid())
+  productId String
+  weightKg  Float
+  widthCm   Float
+  heightCm  Float
+  depthCm   Float
+  quantity  Int      // 👈 cantidad de bultos iguales
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Payment {

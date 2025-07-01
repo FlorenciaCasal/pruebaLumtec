@@ -17,11 +17,14 @@ export default function HomeClient({ products }: Props) {
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    function truncate(text: string, maxLength: number) {
-        const firstDotIndex = text.indexOf('.');
-        if (firstDotIndex !== -1) return `${text.slice(0, firstDotIndex + 1)}`;
-        return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
-    }
+    const formatearPrecio = (precio: number) => {
+        return new Intl.NumberFormat("es-AR", {
+            style: "currency",
+            currency: "ARS",
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        }).format(precio);
+    };
 
     return (
         <>
@@ -43,10 +46,21 @@ export default function HomeClient({ products }: Props) {
                                         />
                                     </div>
                                 </div>
-                                <div className="flex flex-col justify-center h-full">
-                                    <h2 className="text-xl font-semibold">{p.name}</h2>
-                                    <p>{truncate(p.description, 35)}</p>
-                                    <p className="font-bold">${p.price.toFixed(2)}</p>
+                                <div className="flex flex-col justify-around py-4 h-full">
+                                    <h2 className="text-xl font-bold">{p.name}</h2>
+                                    {/* <p>{truncate(p.description, 35)}</p> */}
+                                    <p className="text-xl font-semibold text-gray-500">{p.brand}</p>
+                                    <br />
+                                    <p className="font-bold text-2xl text-[rgba(77,174,91,0.86)]">
+                                        {formatearPrecio(p.price)}
+                                    </p>
+                                    <p className="text-gray-500 font-semibold">
+                                        {p.stock > 1
+                                            ? "Stock disponible"
+                                            : p.stock === 1
+                                                ? "¡Último disponible!"
+                                                : "Sin stock"}
+                                    </p>
                                 </div>
                             </Link>
                         </li>

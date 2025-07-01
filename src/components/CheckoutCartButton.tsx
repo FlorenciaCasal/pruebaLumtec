@@ -26,16 +26,6 @@ export default function CheckoutCartButton() {
     }
 
     setLoading(true);
-
-    // 🎯 Mapear los items al formato de Mercado Pago
-    // const mpItems = items.map((item) => ({
-    //   id: item.cartItemId,
-    //   productId: item.productId,
-    //   title: item.name, // tu carrito usa `name`, MP espera `title`
-    //   quantity: item.quantity,
-    //   currency_id: "ARS",
-    //   unit_price: item.price,
-    // }));
     
     // Para MercadoPago: id debe ser productId
     const mpItems = items.map((item) => ({

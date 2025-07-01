@@ -1,7 +1,6 @@
 "use client";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-// import { addToCart } from "@/lib/store/cart/cartSlice";
 import { setCartItems } from "@/lib/store/cart/cartSlice";
 import { getPendingProduct, clearPendingProduct } from "@/lib/localStorage";
 import { toast } from "sonner";
@@ -12,11 +11,22 @@ type ProductImage = {
     productId: string;
 };
 
+type Package = {
+    id: string;
+    weightKg: number;
+    widthCm: number;
+    heightCm: number;
+    depthCm: number;
+    quantity: number;
+};
+
 type Product = {
     id: string;
     name: string;
     price: number;
     images: ProductImage[];
+    type: string;
+    packages: Package[];
 };
 
 type CartItem = {
@@ -25,10 +35,6 @@ type CartItem = {
     product: Product;
 };
 
-// type CartResponse = {
-//     items: CartItem[];
-//     removedProducts: any[]; // o mejor tipado si querés
-// };
 
 export default function PendingProductHandler() {
     const dispatch = useDispatch();
@@ -48,12 +54,14 @@ export default function PendingProductHandler() {
 
                     if (res.ok) {
                         // dispatch(setCartItems(data.cart.items.map((item: any) => ({
-                        dispatch(setCartItems(data.cart.items.map((item: CartItem) => ({
+                        dispatch(setCartItems(data.items.map((item: CartItem) => ({
                             id: item.id,
                             name: item.product.name,
                             price: item.product.price,
                             quantity: item.quantity,
                             images: item.product.images,
+                            type: item.product.type,       // <- si lo necesitás
+                            packages: item.product.packages // <- si lo necesitás
                         }))));
 
                         toast.success("Producto agregado al carrito", {

@@ -71,6 +71,25 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
             return NextResponse.json({ error: "Item no encontrado o no autorizado" }, { status: 404 });
         }
 
+        // Buscar el stock disponible del producto
+        const product = await prisma.product.findUnique({
+            where: { id: cartItem.productId },
+            select: { stock: true },
+        });
+
+        if (!product) {
+            return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
+        }
+
+        if (quantity > product.stock) {
+            return NextResponse.json(
+                { error: `Solo hay ${product.stock} unidad/es disponible/s` },
+                { status: 400 }
+            );
+        }
+
+
+
         const updatedItem = await prisma.cartItem.update({
             where: { id: cartItemId },
             data: { quantity },

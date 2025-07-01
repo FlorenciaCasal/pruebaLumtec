@@ -7,11 +7,21 @@ import Image from 'next/image';
 type Product = {
     id: string;
     name: string;
+    brand: string;
     price: number;
     stock: number;
     category: string;
     description: string;
+    type: string;
     images: { id: string; url: string }[];
+    packages: {
+        id: string;
+        weightKg: number;
+        widthCm: number;
+        heightCm: number;
+        depthCm: number;
+        quantity: number;
+    }[];
 };
 
 async function compressImage(file: File, quality = 0.8): Promise<Blob> {
@@ -65,11 +75,14 @@ export default function EditarProductos() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 name: selected.name,
+                brand: selected.brand,
                 price: selected.price,
                 stock: selected.stock,
                 category: selected.category,
                 description: selected.description,
+                type: selected.type,
                 images: selected.images.map((img) => img.url),
+                packages: selected.packages,
             }),
         });
 
@@ -88,15 +101,6 @@ export default function EditarProductos() {
             });
         }
     };
-
-    // const handleAddImage = () => {
-    //     if (!newImageUrl.trim() || !selected) return;
-    //     setSelected({
-    //         ...selected,
-    //         images: [...selected.images, { id: crypto.randomUUID(), url: newImageUrl }],
-    //     });
-    //     setNewImageUrl('');
-    // };
 
     const handleRemoveImage = (id: string) => {
         if (!selected) return;
@@ -212,6 +216,13 @@ export default function EditarProductos() {
                         placeholder="Nombre"
                     />
                     <input
+                        type="text"
+                        value={selected.brand}
+                        onChange={(e) => setSelected({ ...selected, brand: e.target.value })}
+                        className="border p-2 w-full"
+                        placeholder="Marca"
+                    />
+                    <input
                         type="number"
                         value={selected.price}
                         onChange={(e) => setSelected({ ...selected, price: parseFloat(e.target.value) })}
@@ -231,6 +242,13 @@ export default function EditarProductos() {
                         onChange={(e) => setSelected({ ...selected, category: e.target.value })}
                         className="border p-2 w-full"
                         placeholder="Categoría"
+                    />
+                    <input
+                        type="text"
+                        value={selected.type}
+                        onChange={(e) => setSelected({ ...selected, type: e.target.value })}
+                        className="border p-2 w-full"
+                        placeholder="Tipo"
                     />
                     <textarea
                         value={selected.description}

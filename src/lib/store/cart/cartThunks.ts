@@ -1,11 +1,21 @@
 import { AppDispatch } from '../../store'
 import { addToCart, clearCart } from './cartSlice';
 import { toast } from 'sonner'
+import { setCartId } from './cartSlice';
 
 type ProductImage = {
     id: string;
     url: string;
     productId: string;
+};
+
+type Package = {
+    id: string;
+    weightKg: number;
+    widthCm: number;
+    heightCm: number;
+    depthCm: number;
+    quantity: number;
 };
 
 type CartItemFromApi = {
@@ -16,16 +26,27 @@ type CartItemFromApi = {
         name: string;
         price: number;
         images: ProductImage[];
+        type: string;
+        packages: Package[];
     };
 };
 
+// type CartApiResponse = {
+//     id?: string;
+//     items: CartItemFromApi[];
+//     removedProducts?: string[];
+// };
 type CartApiResponse = {
-    items: CartItemFromApi[];
+    cart: {
+        id: string;
+        items: CartItemFromApi[];
+    };
     removedProducts?: string[];
-};
+}
 
 type AddProductToCartResponse = {
     cart: {
+        id: string;
         items: CartItemFromApi[];
     };
     removedProducts?: string[];
@@ -35,11 +56,14 @@ export async function fetchCart(dispatch: AppDispatch) {
     const res = await fetch('/api/cart');
     // const data = await res.json();
     const data: CartApiResponse = await res.json();
+    console.log("fetchCart API response:", data);
 
-    if (res.ok && data.items) {
+    if (res.ok && data.cart.items) {
+        if (data.cart.id) {
+            dispatch(setCartId(data.cart.id));  // 👈 esto para tener id en checkout
+        }
         dispatch(clearCart());
-        // data.items.forEach((item: any) => {
-        data.items.forEach((item) => {
+        data.cart.items.forEach((item) => {
             dispatch(addToCart({
                 cartItemId: item.id,
                 productId: item.product.id,
@@ -47,6 +71,8 @@ export async function fetchCart(dispatch: AppDispatch) {
                 price: item.product?.price ?? 0,
                 quantity: item.quantity,
                 images: item.product?.images || [],
+                packages: item.product?.packages || [],
+                type: item.product.type,
             }));
         });
         if (data.removedProducts && data.removedProducts.length > 0) {
@@ -72,9 +98,18 @@ export async function addProductToCart(productId: string, quantity: number, disp
     const data: AddProductToCartResponse = await res.json();
     console.log("Respuesta completa de addProductToCart API:", data);
 
+
+    if (data.removedProducts && data.removedProducts.length > 0) {
+        toast.warning(
+            `El producto seleccionado se encuentra sin stock: ${data.removedProducts.join(", ")}`,
+            { duration: 4500, position: "top-center" }
+        )
+        return false;
+    }
+
     if (res.ok && data.cart) {
+        dispatch(setCartId(data.cart.id)); // 👈 actualizás ahí también
         dispatch(clearCart());
-        // data.cart.items.forEach((item: any) => {
         data.cart.items.forEach((item) => {
             console.log("ITEM DESDE POST API", item);
             dispatch(addToCart({
@@ -84,14 +119,14 @@ export async function addProductToCart(productId: string, quantity: number, disp
                 price: item.product.price,
                 quantity: item.quantity,
                 images: item.product.images,
+                packages: item.product.packages,
+                type: item.product.type,
             }));
         });
-        if (data.removedProducts && data.removedProducts.length > 0) {
-            toast.warning(
-                `Se eliminaron del carrito por falta de stock: ${data.removedProducts.join(", ")}`,
-                { duration: 4500, position: "top-center" }
-            )
+        {
+            toast.success("Producto agregado al carrito");
         }
+
     }
     console.log(data)
 }

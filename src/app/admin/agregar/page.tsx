@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { toast } from 'sonner';
 import Image from "next/image";
 
@@ -34,32 +35,27 @@ async function compressImage(file: File, quality = 0.8): Promise<Blob> {
 }
 
 const AgregarProductos = () => {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [stock, setStock] = useState('');
-  const [category, setCategory] = useState('');
-  const [weightKg, setWeightKg] = useState('');
-  const [widthCm, setWidthCm] = useState('');
-  const [heightCm, setHeightCm] = useState('');
-  const [depthCm, setDepthCm] = useState('');
+  const { register, handleSubmit, reset, control } = useForm({
+    defaultValues: {
+      name: '',
+      brand: '',
+      description: '',
+      price: '',
+      stock: '',
+      category: '',
+      type: 'SINGLE',
+      packages: [{ weightKg: '', widthCm: '', heightCm: '', depthCm: '', quantity: '' }]
+    }
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'packages'
+  });
+
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const resetForm = () => {
-    setName('');
-    setDescription('');
-    setPrice('');
-    setStock('');
-    setCategory('');
-    setWeightKg('');
-    setWidthCm('');
-    setHeightCm('');
-    setDepthCm('');
-    setImages([]);
-    setError(null);
-  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -83,6 +79,10 @@ const AgregarProductos = () => {
       // Comprimir la imagen antes de subirla
       try {
         const compressedBlob = await compressImage(file, 0.8);
+        if (compressedBlob.size > 2 * 1024 * 1024) {
+          toast.error(`❌ La imagen comprimida ${file.name} sigue siendo mayor a 2MB`);
+          continue;
+        }
         const compressedFile = new File([compressedBlob], file.name, { type: 'image/jpeg' });
 
         const formData = new FormData();
@@ -111,33 +111,19 @@ const AgregarProductos = () => {
     setLoading(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const onSubmit = async (data: any) => {
     if (images.length === 0) {
-      setError('Por favor, subí al menos una imagen del producto.');
+      setError('Por favor, subí al menos una imagen.');
       return;
     }
-
     setError(null);
 
-    const product = {
-      name,
-      description,
-      price,
-      stock,
-      category,
-      weightKg,
-      widthCm,
-      heightCm,
-      depthCm,
-      images,
-    };
+    const productData = { ...data, images };
 
     const res = await fetch('/api/products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(product),
+      body: JSON.stringify(productData),
     });
 
     if (res.ok) {
@@ -146,54 +132,65 @@ const AgregarProductos = () => {
         duration: 3000,
         position: 'top-center'
       });
-      resetForm();
+      reset();
+      setImages([]);
     } else {
       setError('Error al crear producto');
     }
   };
 
+
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Cargar nuevo producto</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* inputs de producto (igual que vos) */}
 
-        <input type="text" placeholder="Nombre" value={name} onChange={(e) => setName(e.target.value)} required className="border p-2 w-full" />
-        <textarea placeholder="Descripción" value={description} onChange={(e) => setDescription(e.target.value)} required className="border p-2 w-full" />
-        <input type="number" placeholder="Precio" value={price} onChange={(e) => setPrice(e.target.value)} required className="border p-2 w-full" />
-        <input type="number" placeholder="Stock" value={stock} onChange={(e) => setStock(e.target.value)} required className="border p-2 w-full" />
-        <input type="text" placeholder="Categoría" value={category} onChange={(e) => setCategory(e.target.value)} required className="border p-2 w-full" />
-        <input type="number" placeholder="Peso (Kg)" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} required className="border p-2 w-full" />
-        <input type="number" placeholder="Ancho (cm)" value={widthCm} onChange={(e) => setWidthCm(e.target.value)} required className="border p-2 w-full" />
-        <input type="number" placeholder="Alto (cm)" value={heightCm} onChange={(e) => setHeightCm(e.target.value)} required className="border p-2 w-full" />
-        <input type="number" placeholder="Profundidad (cm)" value={depthCm} onChange={(e) => setDepthCm(e.target.value)} required className="border p-2 w-full" />
+        <input type="text" placeholder="Nombre" {...register('name', { required: true })} className="border p-2 w-full" />
+        <input type="text" placeholder="Marca" {...register('brand', { required: true })} className="border p-2 w-full" />
+        <textarea placeholder="Descripción" {...register('description', { required: true })} className="border p-2 w-full" />
+        <input type="number" placeholder="Precio" {...register('price', { required: true })} className="border p-2 w-full" />
+        <input type="number" placeholder="Stock" {...register('stock', { required: true })} className="border p-2 w-full" />
+        <input type="text" placeholder="Categoría" {...register('category', { required: true })} className="border p-2 w-full" />
+
+        <select {...register('type')} className="border p-2 w-full">
+          <option value="SINGLE">SINGLE</option>
+          <option value="KIT">KIT</option>
+        </select>
+
+        <div className="border p-3 rounded">
+          <p className="font-semibold mb-2">Bultos:</p>
+          {fields.map((field, index) => (
+            <div key={field.id} className="grid grid-cols-5 gap-2 mb-2 items-center">
+              <input type="number" placeholder="Peso (Kg)" {...register(`packages.${index}.weightKg`, { required: true })} className="border p-1" />
+              <input type="number" placeholder="Ancho (cm)" {...register(`packages.${index}.widthCm`, { required: true })} className="border p-1" />
+              <input type="number" placeholder="Alto (cm)" {...register(`packages.${index}.heightCm`, { required: true })} className="border p-1" />
+              <input type="number" placeholder="Prof. (cm)" {...register(`packages.${index}.depthCm`, { required: true })} className="border p-1" />
+              <input type="number" placeholder="Cantidad de bultos" {...register(`packages.${index}.quantity`, { required: true })} className="border p-1" />
+              {fields.length > 1 && (
+                <button type="button" onClick={() => remove(index)} className="text-red-600 text-sm">Eliminar</button>
+              )}
+            </div>
+          ))}
+
+          <button type="button" onClick={() => append({ weightKg: '', widthCm: '', heightCm: '', depthCm: '', quantity: '' })} className="mt-2 bg-gray-200 px-2 py-1 rounded text-sm">
+            + Agregar Bulto
+          </button>
+        </div>
 
         <div>
           <input type="file" accept="image/*" multiple onChange={handleFileUpload} />
-          <p className="text-sm text-gray-500 mt-1">
-            Formatos JPG, PNG o WebP. Tamaño máximo por imagen: 2MB.
-          </p>
           {loading && <p>Subiendo imágenes...</p>}
-          {error && <p className="text-red-600 mt-2">{error}</p>}
-
+          {error && <p className="text-red-600">{error}</p>}
           <div className="flex flex-wrap gap-2 mt-2">
             {images.map((url, idx) => (
-              <Image
-                key={idx}
-                src={url}
-                alt={`Imagen ${idx}`}
-                width={96}   // 24 * 4 px (tailwind w-24)
-                height={96}  // 24 * 4 px (tailwind h-24)
-                className="object-cover rounded"
-              />
+              <Image key={idx} src={url} alt={`Imagen ${idx}`} width={96} height={96} className="object-cover rounded" />
             ))}
           </div>
         </div>
 
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
-          Guardar Producto
-        </button>
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Guardar Producto</button>
       </form>
     </div>
   );

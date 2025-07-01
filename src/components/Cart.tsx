@@ -6,15 +6,49 @@ import Link from "next/link";
 import CheckoutCartButton from "../components/CheckoutCartButton";
 import { Trash2, Plus, Minus } from 'lucide-react';
 import Image from "next/image";
-
+import { toast } from "sonner";
+import { useState } from "react";
+import { setCartId, setCartItems } from "@/lib/store/cart/cartSlice";
+import { useEffect } from "react";
 
 
 export default function Cart() {
     const items = useSelector((state: RootState) => state.cart.items);
     const dispatch = useDispatch();
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    // const shippingCost = items.length > 0 ? 500 : 0;
-    // const total = subtotal + shippingCost;
+    const [postalCode, setPostalCode] = useState("");
+    const [shippingCost, setShippingCost] = useState<number | null>(null);
+    const cartId = useSelector((state: RootState) => state.cart.cartId);
+
+    useEffect(() => {
+        async function loadCart() {
+            try {
+                const res = await fetch("/api/cart");
+                if (!res.ok) throw new Error("Error cargando carrito");
+                const data = await res.json();
+                // Asumiendo que `data.cart.id` y `data.cart.items` vienen del backend
+                dispatch(setCartId(data.id));
+                dispatch(setCartItems(
+                    data.items.map((item: any) => ({
+                        cartItemId: item.id,
+                        productId: item.product.id,
+                        name: item.product.name,
+                        price: item.product.price,
+                        quantity: item.quantity,
+                        images: item.product.images,
+                        type: item.product.type || 'default', // o lo que corresponda
+                        packages: item.product.packages || [],
+                    }))
+                ));
+                console.log("data.items", data.items)
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        loadCart();
+    }, [dispatch]);
+
 
 
     const handleRemoveFromCart = async (cartItemId: string) => {
@@ -22,16 +56,13 @@ export default function Cart() {
             const res = await fetch(`/api/cart/item/${cartItemId}`, {
                 method: 'DELETE',
             });
-
             if (!res.ok) {
                 const errorData = await res.json();
                 console.error("Error eliminando producto:", errorData.error);
                 return;
             }
-
             // Si todo bien → actualiza Redux
             dispatch(removeFromCart(cartItemId));
-
         } catch (error) {
             console.error("Error de red:", error);
         }
@@ -44,15 +75,12 @@ export default function Cart() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ quantity: currentQuantity + 1 }),
             });
-
             if (!res.ok) {
                 const errorData = await res.json();
-                console.error("Error incrementando cantidad:", errorData.error);
+                toast.error(errorData.error || "No se pudo actualizar cantidad");
                 return;
             }
-
             dispatch(incrementQuantity(cartItemId));
-
         } catch (error) {
             console.error("Error de red:", error);
         }
@@ -66,15 +94,12 @@ export default function Cart() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ quantity: currentQuantity - 1 }),
             });
-
             if (!res.ok) {
                 const errorData = await res.json();
                 console.error("Error decrementando cantidad:", errorData.error);
                 return;
             }
-
             dispatch(decrementQuantity(cartItemId));
-
         } catch (error) {
             console.error("Error de red:", error);
         }
@@ -85,19 +110,40 @@ export default function Cart() {
             const res = await fetch("/api/cart", {
                 method: "DELETE",
             });
-
             if (!res.ok) {
                 const errorData = await res.json();
                 console.error("Error al vaciar carrito:", errorData.error);
                 return;
             }
-
             dispatch(clearCart());
         } catch (error) {
             console.error("Error de red:", error);
         }
     };
 
+    const handleGetShippingCost = async () => {
+        if (!cartId) {
+            toast.error("No hay carrito activo para cotizar.");
+            return;
+        }
+
+        if (!postalCode) {
+            toast.error("Por favor ingrese un código postal.");
+            return;
+        }
+        try {
+            const res = await fetch("/api/shipping/quote", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cartId, postalCode }),
+            });
+            const data = await res.json();
+            console.log("Shipping res data:", data);
+            setShippingCost(data.shippingCost);
+        } catch (err) {
+            console.error("Error obteniendo shipping:", err);
+        }
+    };
 
     return (
         <div className="p-4 sm:p-8 border rounded w-full bg-white">
@@ -109,16 +155,11 @@ export default function Cart() {
                     <ul className="space-y-4">
                         {items.map((item) => (
                             <li
+                                // key={item.cartItemId}
                                 key={item.cartItemId}
                                 className="flex justify-between items-center p-2 rounded bg-gray-50"
                             >
                                 <div className="flex items-center gap-4 sm:gap-8">
-                                    {/* <img
-                                        src={Array.isArray(item.images) && item.images.length > 0 ? item.images[0].url : "/images/default.webp"}
-
-                                        alt={item.name}
-                                        className="w-16 h-16 object-cover rounded"
-                                    /> */}
                                     <Image
                                         src={Array.isArray(item.images) && item.images.length > 0 ? item.images[0].url : "/images/default.webp"}
                                         alt={item.name}
@@ -162,12 +203,29 @@ export default function Cart() {
                     </ul>
 
                     <div className="mt-6 p-2 space-y-2 bg-gray-50">
-                        <p>
+                        {/* <p>
                             Envío: <span className="font-semibold">A coordinar</span>
                         </p>
                         <p>
                             El envío es sin cargo hasta el transporte acordado. Desde allí hasta el domicilio indicado por el cliente, el costo corre por cuenta del mismo.
-                        </p>
+                        </p> */}
+                        <div className="flex gap-2 items-center">
+                            <input
+                                type="text"
+                                value={postalCode}
+                                onChange={(e) => setPostalCode(e.target.value)}
+                                placeholder="Código postal"
+                                className="border rounded p-2 w-32"
+                            />
+                            <button
+                                onClick={handleGetShippingCost}
+                                className="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700"
+                            >
+                                Calcular envío
+                            </button>
+                        </div>
+
+                        {shippingCost && <p>Costo estimado de envío: ${shippingCost}</p>}
                     </div>
 
                     <div className="mt-6 p-2 space-y-2 bg-gray-50">

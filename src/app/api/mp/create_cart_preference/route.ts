@@ -18,7 +18,7 @@ type CartItem = {
 const preferences = new Preference(mercadopago);
 
 export async function POST(request: NextRequest) {
-   console.log("handler llamado");
+  console.log("handler llamado");
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -85,7 +85,8 @@ export async function POST(request: NextRequest) {
       },
 
       auto_return: "approved",
-      // notification_url: "https://b84c-148-222-130-216.ngrok-free.app/api/notifications",
+      // notification_url: "https://8074-2803-9810-335b-3210-e000-21e8-f369-8816.ngrok-free.app/api/notifications",
+      // Produccion:
       notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/notifications`,
       metadata: {
         userId: session.user.id,

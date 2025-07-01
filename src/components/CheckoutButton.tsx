@@ -24,7 +24,6 @@ type Props = {
 };
 
 
-
 export default function CheckoutButton({ id, name, price, images, quantity = 1 }: Props) {
   const dispatch = useDispatch();
   const { data: session } = useSession();
@@ -44,7 +43,6 @@ export default function CheckoutButton({ id, name, price, images, quantity = 1 }
             <button
               onClick={async () => {
                 toast.dismiss(t);
-                // const res: any = await signIn(undefined, {
                 const res = await signIn(undefined, {
                   redirect: false,
                   callbackUrl: "/"
@@ -66,44 +64,14 @@ export default function CheckoutButton({ id, name, price, images, quantity = 1 }
 
     console.log("productId: id y quantity", JSON.stringify({ productId: id, quantity }));
 
-    // Si hay sesión → llamás al API y despachás al store
-    // try {
-    //   const res = await fetch("/api/cart", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({ productId: id, quantity }),
-    //   });
-
-    //   const data = await res.json();
-
-    //   if (!res.ok) {
-    //     toast.error(data.error || "Error al agregar el producto");
-    //     return;
-    //   }
-
-    //   dispatch(setCartItems(data.cart.items.map((item: CartItemFromApi) => ({
-    //     cartItemId: item.id,
-    //     name: item.product.name,
-    //     price: item.product.price,
-    //     quantity: item.quantity,
-    //     images: item.product.images,
-    //   }))
-    //   ));
-    //   toast.success("Producto agregado al carrito");
-    // } catch (error) {
-    //   console.error("Error de red:", error);
-    //   toast.error("No se pudo conectar con el servidor");
-    // }
     try {
       await addProductToCart(id, quantity, dispatch as AppDispatch);
-      toast.success("Producto agregado al carrito");
     } catch (error) {
       console.error("Error al agregar producto al carrito", error);
       toast.error("No se pudo conectar con el servidor");
     }
   };
 
-  // 👇👇 Esto estaba mal ubicado dentro de handleAddToCart
   return (
     <button
       onClick={handleAddToCart}

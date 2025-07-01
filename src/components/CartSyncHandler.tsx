@@ -1,8 +1,9 @@
 "use client";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { setCartItems, clearCart } from "@/lib/store/cart/cartSlice";
+import { setCartItems, clearCart, setCartId } from "@/lib/store/cart/cartSlice";
 import { useSession } from "next-auth/react";
+
 
 type ApiCartItem = {
     id: string;
@@ -10,8 +11,16 @@ type ApiCartItem = {
     product: {
         id: string;
         name: string;
+        brand: string;
         price: number;
         images: { url: string }[];
+        packages: {
+            weightKg: number;
+            widthCm: number;
+            heightCm: number;
+            depthCm: number;
+            quantity: number;
+        }[];
     };
 };
 
@@ -26,21 +35,23 @@ export default function CartSyncHandler() {
                 credentials: 'include'
             });
             const data = await res.json();
-            if (data.items) {
+            console.log("data en cartSyncHandler: ", data)
+            if (data.id && data.items) {
                 const items = data.items.map((item: ApiCartItem) => ({
                     cartItemId: item.id, // 👈 ahora traemos el cartItem.id
                     productId: item.product.id,
                     name: item.product.name,
+                    brand: item.product.brand,
                     price: item.product.price,
                     quantity: item.quantity,
-                    images: item.product.images
+                    images: item.product.images,
+                    packages: item.product.packages
                 }));
                 dispatch(setCartItems(items));
+                dispatch(setCartId(data.id));
             }
         };
 
-        //     fetchCart();
-        // }, [dispatch]);
         if (status === "authenticated") {
             fetchCart();
         }
