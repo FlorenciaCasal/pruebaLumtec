@@ -87,21 +87,22 @@ model VerificationToken {
 }
 
 model Product {
-  id          String         @id @default(cuid())
-  name        String         @unique
-  brand       String         @default("")
-  description String         @db.Text 
-  price       Float
-  stock       Int
-  category    String
-  type        ProductType    @default(SINGLE) // SINGLE o KIT
-  packages    Package[]
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  sales       Sale[]         // Relación con Sale
-  images      ProductImage[] // relación 1 a N con las imágenes
-  cartItems   CartItem[]     // ⬅️ relación inversa: un producto puede estar en varios CartItem
-  orderItems  OrderItem[]
+  id              String         @id @default(cuid())
+  name            String         @unique
+  brand           String         @default("")
+  description     String         @db.Text 
+  price           Float
+  stock           Int
+  category        String
+  type            ProductType    @default(SINGLE) // SINGLE o KIT
+  packages        Package[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  sales           Sale[]         // Relación con Sale
+  images          ProductImage[] // relación 1 a N con las imágenes
+  cartItems       CartItem[]     // ⬅️ relación inversa: un producto puede estar en varios CartItem
+  orderItems      OrderItem[]
+  orderPackages   OrderPackage[]
 
   @@index([createdAt])
 }
@@ -188,6 +189,7 @@ model Orders {
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   payment     Payment      @relation(fields: [paymentId], references: [paymentId], onDelete: Cascade)
   items       OrderItem[]
+  packages    OrderPackage[]
 
   @@index([createdAt])
 }
@@ -205,3 +207,18 @@ model OrderItem {
   @@unique([orderId, productId]) // evita duplicados de producto en una orden
 }
 
+model OrderPackage {
+  id        String   @id @default(cuid())
+  orderId   String
+  productId String
+  weightKg  Float
+  widthCm   Float
+  heightCm  Float
+  depthCm   Float
+  quantity  Int // cuántos bultos iguales de este tipo se envían en esta orden
+
+  orders    Orders  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+}

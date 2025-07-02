@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'; // asegúrate de tener este cliente exportado
 import ImagenProducto from '@/components/ImagenProducto';
-
+import { formatearPrecio } from '@/utils/format';
 // SSR (Server Side Rendering)
 export const dynamic = 'force-dynamic';
 
@@ -10,14 +10,6 @@ export default async function VerProductos() {
         orderBy: { createdAt: 'desc' },
     });
 
-    const formatearPrecio = (precio: number) => {
-        return new Intl.NumberFormat("es-AR", {
-            style: "currency",
-            currency: "ARS",
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2
-        }).format(precio);
-    };
 
     return (
         <div className="p-6 max-w-5xl mx-auto">

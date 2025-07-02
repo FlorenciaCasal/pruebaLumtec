@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ProductWithImages } from "@/types/productImage.types";
 import { RootState } from "@/lib/store";
 import Image from "next/image";
+import { formatearPrecio } from '@/utils/format';
 
 
 interface Props {
@@ -16,15 +17,6 @@ export default function HomeClient({ products }: Props) {
     const filteredProducts = products.filter((p) =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
-    const formatearPrecio = (precio: number) => {
-        return new Intl.NumberFormat("es-AR", {
-            style: "currency",
-            currency: "ARS",
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2
-        }).format(precio);
-    };
 
     return (
         <>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { PaymentStatus, OrderStatus } from '@prisma/client';
+import { createOrderPackages } from "@/lib/orderPackages";
 
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN!;
 const MP_SECRET = process.env.MP_SECRET!;
@@ -162,8 +163,12 @@ export async function POST(request: NextRequest) {
           status: "paid" as OrderStatus
         }
       });
-
       console.log("📦 Orden creada:", order.id);
+
+      // Crear paquetes
+      await createOrderPackages(tx, order.id, items);
+
+      console.log("📦 Orden creada y paquetes generados:", order.id);
 
       for (const item of items) {
         const productId = item.id;

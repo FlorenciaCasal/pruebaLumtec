@@ -12,9 +12,28 @@ declare global {
   }
 }
 
-export default function CheckoutCartButton() {
+type MPItem = {
+  id: string;
+  productId?: string; // opcional porque el de shipping no lo tiene
+  title: string;
+  quantity: number;
+  currency_id: string;
+  unit_price: number;
+};
+
+type CheckoutCartButtonProps = {
+  disabled: boolean;
+  shippingCost: number | null;
+  shippingMethod: "store_pickup" | "delivery" | null;
+};
+
+export default function CheckoutCartButton({ shippingCost, shippingMethod }: CheckoutCartButtonProps) {
   const items = useSelector((state: RootState) => state.cart.items);
   const [loading, setLoading] = useState(false);
+
+  const canCheckout =
+    shippingMethod === "store_pickup" ||
+    (shippingMethod === "delivery" && shippingCost !== null);
 
   const handleCheckout = async () => {
     if (items.length === 0) {
@@ -26,9 +45,10 @@ export default function CheckoutCartButton() {
     }
 
     setLoading(true);
-    
+
     // Para MercadoPago: id debe ser productId
-    const mpItems = items.map((item) => ({
+    // const mpItems = items.map((item) => ({
+    const mpItems: MPItem[] = items.map((item) => ({
       id: item.productId,      // ✅ usar el id del producto, no del cartItem
       productId: item.productId,
       title: item.name,
@@ -37,6 +57,16 @@ export default function CheckoutCartButton() {
       unit_price: item.price,
     }));
 
+    // Si hay costo de envío, lo agregamos como ítem extra
+    if (shippingCost !== null && shippingMethod === "delivery") {
+      mpItems.push({
+        id: "shipping",
+        title: "Costo de envío",
+        quantity: 1,
+        currency_id: "ARS",
+        unit_price: shippingCost,
+      });
+    }
     console.log("Items para MP:", mpItems);
 
 
@@ -82,8 +112,11 @@ export default function CheckoutCartButton() {
   return (
     <button
       onClick={handleCheckout}
-      disabled={loading}
-      className="bg-green-600 text-white px-4 py-2 rounded-xl shadow-lg hover:shadow-xl hover:bg-green-700/90 transition duration-300"
+      disabled={loading || !canCheckout}
+      className={`${loading || !canCheckout
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-green-600 hover:bg-green-700/90"
+        } text-white px-4 py-2 rounded-xl shadow-lg transition duration-300`}
     >
       {loading ? "Procesando..." : "Ir a pagar"}
     </button>

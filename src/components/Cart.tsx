@@ -10,6 +10,9 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { setCartId, setCartItems } from "@/lib/store/cart/cartSlice";
 import { useEffect } from "react";
+import { formatearPrecio } from "../utils/format"
+
+
 
 type ProductImage = {
     id: string;
@@ -52,6 +55,10 @@ export default function Cart() {
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const [postalCode, setPostalCode] = useState("");
     const [shippingCost, setShippingCost] = useState<number | null>(null);
+    const [shippingMethod, setShippingMethod] = useState<"store_pickup" | "delivery" | null>(null);
+    const total = shippingCost !== null ? subtotal + shippingCost : subtotal;
+    const [isQuoting, setIsQuoting] = useState(false);
+
     const cartId = useSelector((state: RootState) => state.cart.cartId);
 
     useEffect(() => {
@@ -165,6 +172,10 @@ export default function Cart() {
             toast.error("Por favor ingrese un código postal.");
             return;
         }
+        if (shippingMethod !== "delivery") {
+            toast.error("Primero elegí 'Envío a domicilio' para cotizar.");
+            return;
+        }
         try {
             const res = await fetch("/api/shipping/quote", {
                 method: "POST",
@@ -173,7 +184,7 @@ export default function Cart() {
             });
             const data = await res.json();
             console.log("Shipping res data:", data);
-            setShippingCost(data.shippingCost);
+            setShippingCost(Number(data.shippingCost));
         } catch (err) {
             console.error("Error obteniendo shipping:", err);
         }
@@ -203,7 +214,7 @@ export default function Cart() {
                                     />
                                     <div>
                                         <h3 className="font-semibold">{item.name}</h3>
-                                        <p>${item.price ? item.price.toFixed(2) : "0.00"} c/u</p>
+                                        <p>{formatearPrecio(item.price)} c/u</p>
                                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2">
                                             <div className="flex items-center gap-2 border rounded p-1">
                                                 <button
@@ -221,7 +232,7 @@ export default function Cart() {
                                                 </button>
                                             </div>
                                             <span className="font-semibold sm:ml-4">
-                                                Subtotal: ${(item.price * item.quantity).toFixed(2)}
+                                                Subtotal: {formatearPrecio(item.price * item.quantity)}
                                             </span>
                                         </div>
                                     </div>
@@ -237,33 +248,56 @@ export default function Cart() {
                     </ul>
 
                     <div className="mt-6 p-2 space-y-2 bg-gray-50">
-                        {/* <p>
-                            Envío: <span className="font-semibold">A coordinar</span>
-                        </p>
-                        <p>
-                            El envío es sin cargo hasta el transporte acordado. Desde allí hasta el domicilio indicado por el cliente, el costo corre por cuenta del mismo.
-                        </p> */}
-                        <div className="flex gap-2 items-center">
-                            <input
-                                type="text"
-                                value={postalCode}
-                                onChange={(e) => setPostalCode(e.target.value)}
-                                placeholder="Código postal"
-                                className="border rounded p-2 w-32"
-                            />
-                            <button
-                                onClick={handleGetShippingCost}
-                                className="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700"
-                            >
-                                Calcular envío
-                            </button>
+                        {shippingMethod === "delivery" && (
+                            <div className="flex gap-2 items-center mt-2">
+                                <input
+                                    type="text"
+                                    value={postalCode}
+                                    onChange={(e) => setPostalCode(e.target.value)}
+                                    placeholder="Código postal"
+                                    className="border rounded p-2 w-32"
+                                />
+                                <button
+                                    onClick={handleGetShippingCost}
+                                    className="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700"
+                                >
+                                    Calcular envío
+                                </button>
+                            </div>
+                        )}
+                        <div className="flex gap-4 items-center mt-4">
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="shippingMethod"
+                                    value="delivery"
+                                    checked={shippingMethod === "delivery"}
+                                    onChange={() => setShippingMethod("delivery")}
+                                />
+                                <span className="ml-2">Envío a domicilio</span>
+                            </label>
+
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="shippingMethod"
+                                    value="store_pickup"
+                                    checked={shippingMethod === "store_pickup"}
+                                    onChange={() => {
+                                        setShippingMethod("store_pickup");
+                                        setShippingCost(0); // envío gratis
+                                    }}
+                                />
+                                <span className="ml-2">Retirar en tienda</span>
+                            </label>
                         </div>
 
-                        {shippingCost && <p>Costo estimado de envío: {shippingCost}</p>}
+                        {shippingCost !== null && <p>Costo estimado de envío: {formatearPrecio(shippingCost)}</p>}
+
                     </div>
 
                     <div className="mt-6 p-2 space-y-2 bg-gray-50">
-                        <h3 className="text-xl font-bold">Total: ${subtotal.toFixed(2)}</h3>
+                        <h3 className="text-xl font-bold">Total: ${total.toFixed(2)}</h3>
                     </div>
 
                     <div className="flex gap-2 mt-4 flex-wrap">
@@ -281,7 +315,11 @@ export default function Cart() {
                             Vaciar carrito
                         </button>
 
-                        <CheckoutCartButton />
+                        <CheckoutCartButton
+                            disabled={!shippingMethod}
+                            shippingCost={shippingCost}
+                            shippingMethod={shippingMethod}
+                        />
                     </div>
                 </>
             )

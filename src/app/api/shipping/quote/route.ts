@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       }).format(precio);
     };
 
-    const shippingCost = formatearPrecio(1); // Por ejemplo; // Por ejemplo
+    const shippingCost = 1; // Por ejemplo; // Por ejemplo
 
     return NextResponse.json({ shippingCost });
   } catch (error) {

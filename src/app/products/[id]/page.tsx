@@ -1,6 +1,7 @@
 import { ProductWithImages } from '@/types/productImage.types';
 import ProductImages from '@/components/ProductImages';
 import CheckoutButton from '@/components/CheckoutButton';
+import { formatearPrecio } from '@/utils/format';
 
 
 async function getProduct(id: string): Promise<ProductWithImages> {
@@ -9,14 +10,6 @@ async function getProduct(id: string): Promise<ProductWithImages> {
         return res.json();
 }
 
-const formatearPrecio = (precio: number) => {
-        return new Intl.NumberFormat("es-AR", {
-                style: "currency",
-                currency: "ARS",
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 2
-        }).format(precio);
-};
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
         try {

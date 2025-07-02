@@ -97,7 +97,8 @@ export async function addProductToCart(productId: string, quantity: number, disp
 
     if (data.removedProducts && data.removedProducts.length > 0) {
         toast.warning(
-            `El producto seleccionado se encuentra sin stock: ${data.removedProducts.join(", ")}`,
+            // `El producto seleccionado se encuentra sin stock: ${data.removedProducts.join(", ")}`,
+             `El producto seleccionado se encuentra sin stock`,
             { duration: 4500, position: "top-center" }
         )
         return false;
