@@ -3,6 +3,14 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
+type PackageInput = {
+  weightKg: number | string;
+  widthCm: number | string;
+  heightCm: number | string;
+  depthCm: number | string;
+  quantity: number | string;
+};
+
 export async function GET() {
   const products = await prisma.product.findMany({
     include: {
@@ -40,13 +48,13 @@ export async function POST(request: Request) {
   // Crear paquetes si hay
   if (packages && packages.length > 0) {
     await prisma.package.createMany({
-      data: packages.map((pkg: any) => ({
+      data: (packages as PackageInput[]).map((pkg) => ({
         productId: product.id,
-        weightKg: parseFloat(pkg.weightKg),
-        widthCm: parseFloat(pkg.widthCm),
-        heightCm: parseFloat(pkg.heightCm),
-        depthCm: parseFloat(pkg.depthCm),
-        quantity: parseInt(pkg.quantity),
+        weightKg: parseFloat(pkg.weightKg.toString()),
+        widthCm: parseFloat(pkg.widthCm.toString()),
+        heightCm: parseFloat(pkg.heightCm.toString()),
+        depthCm: parseFloat(pkg.depthCm.toString()),
+        quantity: parseInt(pkg.quantity.toString()),
       })),
     });
   }

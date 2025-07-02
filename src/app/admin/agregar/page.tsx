@@ -5,6 +5,25 @@ import { toast } from 'sonner';
 import Image from "next/image";
 
 
+type PackageInput = {
+  weightKg: string;
+  widthCm: string;
+  heightCm: string;
+  depthCm: string;
+  quantity: string;
+};
+
+type ProductFormData = {
+  name: string;
+  brand: string;
+  description: string;
+  price: string;
+  stock: string;
+  category: string;
+  type: string;
+  packages: PackageInput[];
+};
+
 async function compressImage(file: File, quality = 0.8): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new window.Image();
@@ -35,7 +54,7 @@ async function compressImage(file: File, quality = 0.8): Promise<Blob> {
 }
 
 const AgregarProductos = () => {
-  const { register, handleSubmit, reset, control } = useForm({
+  const { register, handleSubmit, reset, control } = useForm<ProductFormData>({
     defaultValues: {
       name: '',
       brand: '',
@@ -111,7 +130,7 @@ const AgregarProductos = () => {
     setLoading(false);
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: ProductFormData) => {
     if (images.length === 0) {
       setError('Por favor, subí al menos una imagen.');
       return;

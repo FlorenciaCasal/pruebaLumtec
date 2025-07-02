@@ -24,6 +24,7 @@ type CartItemFromApi = {
     product: {
         id: string;
         name: string;
+        brand: string | null;
         price: number;
         images: ProductImage[];
         type: string;
@@ -31,11 +32,6 @@ type CartItemFromApi = {
     };
 };
 
-// type CartApiResponse = {
-//     id?: string;
-//     items: CartItemFromApi[];
-//     removedProducts?: string[];
-// };
 type CartApiResponse = {
     cart: {
         id: string;

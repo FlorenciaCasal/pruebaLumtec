@@ -11,6 +11,40 @@ import { useState } from "react";
 import { setCartId, setCartItems } from "@/lib/store/cart/cartSlice";
 import { useEffect } from "react";
 
+type ProductImage = {
+    id: string;
+    url: string;
+    productId: string;
+};
+
+type Package = {
+    id: string;
+    weightKg: number;
+    widthCm: number;
+    heightCm: number;
+    depthCm: number;
+    quantity: number;
+};
+
+type CartItemFromApi = {
+    id: string;             // id del cartItem
+    quantity: number;       // cantidad en el carrito
+    product: {
+        id: string;
+        name: string;
+        brand: string | null;
+        price: number;
+        images: ProductImage[];
+        type: string;
+        packages: Package[];
+    };
+};
+
+export type CartApiResponse = {
+    id: string;
+    items: CartItemFromApi[];
+    removedProducts: string[];
+};
 
 export default function Cart() {
     const items = useSelector((state: RootState) => state.cart.items);
@@ -25,11 +59,11 @@ export default function Cart() {
             try {
                 const res = await fetch("/api/cart");
                 if (!res.ok) throw new Error("Error cargando carrito");
-                const data = await res.json();
+                const data: CartApiResponse = await res.json();
                 // Asumiendo que `data.cart.id` y `data.cart.items` vienen del backend
                 dispatch(setCartId(data.id));
                 dispatch(setCartItems(
-                    data.items.map((item: any) => ({
+                    data.items.map((item) => ({
                         cartItemId: item.id,
                         productId: item.product.id,
                         name: item.product.name,
@@ -225,7 +259,7 @@ export default function Cart() {
                             </button>
                         </div>
 
-                        {shippingCost && <p>Costo estimado de envío: ${shippingCost}</p>}
+                        {shippingCost && <p>Costo estimado de envío: {shippingCost}</p>}
                     </div>
 
                     <div className="mt-6 p-2 space-y-2 bg-gray-50">

@@ -4,7 +4,8 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    const { cartId, postalCode } = await req.json();
+    // const { cartId, postalCode } = await req.json();
+    const { cartId} = await req.json();
 
     if (!cartId) {
       return NextResponse.json({ error: "CartId requerido" }, { status: 400 });
@@ -23,15 +24,15 @@ export async function POST(req: NextRequest) {
     }
 
     // Armamos listado de paquetes reales
-    const packages = items.flatMap((item) =>
-      item.product.packages.map((pack) => ({
-        weightKg: pack.weightKg * item.quantity,
-        widthCm: pack.widthCm,
-        heightCm: pack.heightCm,
-        depthCm: pack.depthCm,
-        quantity: pack.quantity * item.quantity,
-      }))
-    );
+    // const packages = items.flatMap((item) =>
+    //   item.product.packages.map((pack) => ({
+    //     weightKg: pack.weightKg * item.quantity,
+    //     widthCm: pack.widthCm,
+    //     heightCm: pack.heightCm,
+    //     depthCm: pack.depthCm,
+    //     quantity: pack.quantity * item.quantity,
+    //   }))
+    // );
 
     // Ahora llamarías a la API de Cruz del Sur acá
     // const response = await fetch("https://api.cruzdelsur.com/cotizar", {

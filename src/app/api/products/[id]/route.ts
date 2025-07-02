@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+type PackageInput = {
+  weightKg: number | string;
+  widthCm: number | string;
+  heightCm: number | string;
+  depthCm: number | string;
+  quantity: number | string;
+};
+
 // export async function GET(request: Request, { params }: { params: { id: string } }) {
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   const params = await context.params;
@@ -18,7 +26,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   const params = await context.params;
   const { name, brand, description, price, stock, category, type, images, packages } = await request.json();
   try {
-    const updatedProduct = await prisma.product.update({
+    await prisma.product.update({
       where: { id: params.id },
       data: {
         name,
@@ -45,13 +53,13 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     // Crear nuevos paquetes si hay
     if (packages && packages.length > 0) {
       await prisma.package.createMany({
-        data: packages.map((pkg: any) => ({
+        data: (packages as PackageInput[]).map((pkg) => ({
           productId: params.id,
-          weightKg: parseFloat(pkg.weightKg),
-          widthCm: parseFloat(pkg.widthCm),
-          heightCm: parseFloat(pkg.heightCm),
-          depthCm: parseFloat(pkg.depthCm),
-          quantity: parseInt(pkg.quantity),
+          weightKg: parseFloat(pkg.weightKg.toString()),
+          widthCm: parseFloat(pkg.widthCm.toString()),
+          heightCm: parseFloat(pkg.heightCm.toString()),
+          depthCm: parseFloat(pkg.depthCm.toString()),
+          quantity: parseInt(pkg.quantity.toString()),
         })),
       });
     }
