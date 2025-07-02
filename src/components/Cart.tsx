@@ -57,8 +57,6 @@ export default function Cart() {
     const [shippingCost, setShippingCost] = useState<number | null>(null);
     const [shippingMethod, setShippingMethod] = useState<"store_pickup" | "delivery" | null>(null);
     const total = shippingCost !== null ? subtotal + shippingCost : subtotal;
-    const [isQuoting, setIsQuoting] = useState(false);
-
     const cartId = useSelector((state: RootState) => state.cart.cartId);
 
     useEffect(() => {

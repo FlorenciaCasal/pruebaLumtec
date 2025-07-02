@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 export async function POST(req: NextRequest) {
   try {
     // const { cartId, postalCode } = await req.json();
-    const { cartId} = await req.json();
+    const { cartId } = await req.json();
 
     if (!cartId) {
       return NextResponse.json({ error: "CartId requerido" }, { status: 400 });
@@ -49,14 +49,6 @@ export async function POST(req: NextRequest) {
     // });
 
     // Simulamos respuesta por ahora:
-    const formatearPrecio = (precio: number) => {
-      return new Intl.NumberFormat("es-AR", {
-        style: "currency",
-        currency: "ARS",
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-      }).format(precio);
-    };
 
     const shippingCost = 1; // Por ejemplo; // Por ejemplo
 
