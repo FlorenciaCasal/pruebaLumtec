@@ -31,7 +31,8 @@ export async function POST(request: NextRequest) {
     const topic = body.topic || body.type;
 
     if (["payment", "merchant_order"].includes(topic)) {
-      if (process.env.NODE_ENV === "production" && body.live_mode === true) {
+      // if (process.env.NODE_ENV === "production" && body.live_mode === true) {
+      if (process.env.NODE_ENV === "production") {
         const signature = request.headers.get("x-signature");
         if (!signature) {
           console.error("❌ Firma faltante");
@@ -68,7 +69,9 @@ export async function POST(request: NextRequest) {
         headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` },
       });
       const orderData = await orderResponse.json();
-      paymentId = orderData.payments?.[0]?.id;
+      if (orderData.payments.length > 0) {
+        paymentId = orderData.payments?.[0]?.id;
+      }
     } else if (topic === "payment") {
       paymentId = body.data.id || body.resource;
     }
