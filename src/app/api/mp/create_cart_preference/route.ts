@@ -28,13 +28,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Permiso denegado" }, { status: 403 });
   }
   try {
-    const items: CartItem[] = await request.json();
+    // const items: CartItem[] = await request.json();
+    const body = await request.json();
+    console.log("Body recibido en create_cart_preference:", body);
+    const items: CartItem[] = body.items;
     // Validación básica de que items sea array y tenga contenido
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Items inválidos" }, { status: 400 });
     }
     // Validar stock disponible de cada producto
-    const productIds = [...new Set(items.map(item => item.productId))];
+    // const productIds = [...new Set(items.map(item => item.productId))];
+    const productIds = [...new Set(items
+      .filter(item => item.productId !== undefined)
+      .map(item => item.productId)
+    )];
 
     const products = await prisma.product.findMany({
       where: { id: { in: productIds } },

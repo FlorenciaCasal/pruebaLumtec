@@ -54,7 +54,8 @@ export default function PendingProductHandler() {
 
                     if (res.ok) {
                         // dispatch(setCartItems(data.cart.items.map((item: any) => ({
-                        dispatch(setCartItems(data.items.map((item: CartItem) => ({
+                        // dispatch(setCartItems(data.items.map((item: CartItem) => ({
+                        dispatch(setCartItems(data.cart.items.map((item: CartItem) => ({
                             id: item.id,
                             name: item.product.name,
                             price: item.product.price,
