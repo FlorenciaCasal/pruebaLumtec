@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { PaymentStatus, OrderStatus } from '@prisma/client';
 import { createOrderPackages } from "@/lib/orderPackages";
 
+
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN!;
 const MP_SECRET = process.env.MP_SECRET!;
 
@@ -30,36 +31,6 @@ export async function POST(request: NextRequest) {
 
     const topic = body.topic || body.type;
 
-    // if (["payment", "merchant_order"].includes(topic)) {
-    //   if (process.env.NODE_ENV === "production" && body.live_mode === true) {
-    //     const signature = request.headers.get("x-signature");
-    //     if (!signature) {
-    //       console.error("❌ Firma faltante");
-    //       return NextResponse.json({ error: "Signature missing" }, { status: 400 });
-    //     }
-
-    //     const ts = signature.match(/t=([^,]*)/)?.[1];
-    //     const v1Hash = signature.match(/v1=([^,]*)/)?.[1];
-
-    //     if (!ts || !v1Hash) {
-    //       console.error("❌ Formato de firma inválido");
-    //       return NextResponse.json({ error: "Invalid signature format" }, { status: 400 });
-    //     }
-
-    //     const generatedHash = crypto
-    //       .createHmac('sha256', MP_SECRET)
-    //       .update(`t=${ts}.${bodyText}`)
-    //       .digest('hex');
-
-    //     if (v1Hash !== generatedHash) {
-    //       console.error("❌ Firma inválida", { recibida: v1Hash, calculada: generatedHash });
-    //       return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
-    //     }
-    //   }
-    // } else {
-    //   console.log("📤 Tipo de notificación no manejada:", topic);
-    //   return NextResponse.json({ message: "Tipo de notificación no manejada" }, { status: 200 });
-    // }
     if (["payment", "merchant_order"].includes(topic)) {
       // Solo validamos firma si está en producción Y la notificación es en live_mode
       if (process.env.NODE_ENV === "production" && body.live_mode === true) {
@@ -101,7 +72,9 @@ export async function POST(request: NextRequest) {
       const orderResponse = await fetch(body.resource, {
         headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` },
       });
+
       const orderData = await orderResponse.json();
+
       if (orderData.payments.length > 0) {
         paymentId = orderData.payments?.[0]?.id;
       }
@@ -110,6 +83,10 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("📨 Webhook completo:", JSON.stringify(body, null, 2));
+
+    if (topic === "payment" && body.action === "payment.created") {
+      console.log("⚙️ Evento payment.created recibido");
+    }
 
     if (!paymentId) {
       console.warn("❌ No se pudo obtener paymentId");
@@ -124,6 +101,11 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/json"
       }
     });
+
+    if (mpResponse.status === 404) {
+      console.warn("⚠️ Pago no encontrado en MP, ignorando por ahora");
+      return NextResponse.json({ message: "Payment not found yet" }, { status: 200 });
+    }
 
     if (!mpResponse.ok) {
       console.error("❌ Error al obtener pago de MP");

@@ -80,39 +80,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No hay carrito activo" }, { status: 400 });
     }
 
-    //   const product = products.find(p => p.id === item.productId);
-    //   return {
-    //     id: item.id,
-    //     title: item.title,
-    //     quantity: item.quantity,
-    //     unit_price: product ? product.price : 0,  // Tomamos el precio real desde la DB
-    //     currency_id: "ARS",
-    //   };
-    // }),
-    // Si es el ítem de envío lo dejamos como viene
     const preference = {
-      // items: items.map((item: CartItem) => {
-      //   if (item.id === 'shipping') {
-      //     return {
-      //       id: 'shipping',
-      //       title: item.title,
-      //       quantity: item.quantity,
-      //       unit_price: item.unit_price,
-      //       currency_id: "ARS",
-      //     };
-      //   }
-
-      //   const product = products.find(p => p.id === item.productId);
-      //   if (!product) throw new Error(`Producto ${item.title} no encontrado al crear preferencia`);
-
-      //   return {
-      //     id: item.id,
-      //     title: item.title,
-      //     quantity: item.quantity,
-      //     unit_price: product.price,
-      //     currency_id: "ARS",
-      //   };
-      // }),
       items: items
         .filter((item: CartItem) => item.id !== 'shipping') // 👈 filtramos para no mandarlo
         .map((item: CartItem) => {
