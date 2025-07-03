@@ -65,6 +65,10 @@ export async function POST(request: NextRequest) {
     console.log("Product IDs:", productIds);
     console.log("Items:", items);
 
+    if (typeof shippingCost !== 'number' || shippingCost < 0) {
+      return NextResponse.json({ error: "Costo de envío inválido" }, { status: 400 });
+    }
+
     // Buscar carrito open del usuario
     const cart = await prisma.cart.findFirst({
       where: {
@@ -76,39 +80,53 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No hay carrito activo" }, { status: 400 });
     }
 
+    //   const product = products.find(p => p.id === item.productId);
+    //   return {
+    //     id: item.id,
+    //     title: item.title,
+    //     quantity: item.quantity,
+    //     unit_price: product ? product.price : 0,  // Tomamos el precio real desde la DB
+    //     currency_id: "ARS",
+    //   };
+    // }),
+    // Si es el ítem de envío lo dejamos como viene
     const preference = {
-      items: items.map((item: CartItem) => {
-        //   const product = products.find(p => p.id === item.productId);
-        //   return {
-        //     id: item.id,
-        //     title: item.title,
-        //     quantity: item.quantity,
-        //     unit_price: product ? product.price : 0,  // Tomamos el precio real desde la DB
-        //     currency_id: "ARS",
-        //   };
-        // }),
-        // Si es el ítem de envío lo dejamos como viene
-        if (item.id === 'shipping') {
+      // items: items.map((item: CartItem) => {
+      //   if (item.id === 'shipping') {
+      //     return {
+      //       id: 'shipping',
+      //       title: item.title,
+      //       quantity: item.quantity,
+      //       unit_price: item.unit_price,
+      //       currency_id: "ARS",
+      //     };
+      //   }
+
+      //   const product = products.find(p => p.id === item.productId);
+      //   if (!product) throw new Error(`Producto ${item.title} no encontrado al crear preferencia`);
+
+      //   return {
+      //     id: item.id,
+      //     title: item.title,
+      //     quantity: item.quantity,
+      //     unit_price: product.price,
+      //     currency_id: "ARS",
+      //   };
+      // }),
+      items: items
+        .filter((item: CartItem) => item.id !== 'shipping') // 👈 filtramos para no mandarlo
+        .map((item: CartItem) => {
+          const product = products.find(p => p.id === item.productId);
+          if (!product) throw new Error(`Producto ${item.title} no encontrado al crear preferencia`);
+
           return {
-            id: 'shipping',
+            id: item.id,
             title: item.title,
             quantity: item.quantity,
-            unit_price: item.unit_price,
+            unit_price: product.price,
             currency_id: "ARS",
           };
-        }
-
-        const product = products.find(p => p.id === item.productId);
-        if (!product) throw new Error(`Producto ${item.title} no encontrado al crear preferencia`);
-
-        return {
-          id: item.id,
-          title: item.title,
-          quantity: item.quantity,
-          unit_price: product.price,
-          currency_id: "ARS",
-        };
-      }),
+        }),
       shipments: {
         cost: shippingCost,
         mode: "not_specified"
