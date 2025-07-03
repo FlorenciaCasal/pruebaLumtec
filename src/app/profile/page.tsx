@@ -154,8 +154,8 @@ export default function ProfilePage() {
                 phone: "",
                 isDefault: false,
             });
-        } catch (err) {
-            setErrorAddress((err as Error).message || "Error desconocido");
+        } catch {
+            setErrorAddress("Error desconocido");
         }
         setLoadingAddress(false);
     };
@@ -167,8 +167,8 @@ export default function ProfilePage() {
             const res = await fetch(`/api/addresses/${id}`, { method: "DELETE" });
             if (!res.ok) throw new Error("No se pudo eliminar");
             setProfile(prev => prev ? { ...prev, addresses: prev.addresses.filter(addr => addr.id !== id) } : prev);
-        } catch (err) {
-            alert((err as Error).message || "Error desconocido");
+        } catch {
+            alert("Error desconocido");
         }
     };
 
