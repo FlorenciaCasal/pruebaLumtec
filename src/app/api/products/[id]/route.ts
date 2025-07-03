@@ -70,7 +70,6 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       include: { images: true, packages: true },
     });
 
-
     // return NextResponse.json(updatedProduct);
     return NextResponse.json(productWithDetails);
   } catch (error) {
