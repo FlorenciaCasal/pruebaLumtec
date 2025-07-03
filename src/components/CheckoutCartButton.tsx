@@ -74,7 +74,7 @@ export default function CheckoutCartButton({ shippingCost, shippingMethod }: Che
       // const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/mp/create_cart_preference`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: mpItems }),
+      body: JSON.stringify(mpItems),
     });
 
     const data = await res.json();
