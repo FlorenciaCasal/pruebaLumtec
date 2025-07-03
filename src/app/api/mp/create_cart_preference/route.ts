@@ -30,8 +30,11 @@ export async function POST(request: NextRequest) {
   try {
     // const items: CartItem[] = await request.json();
     const body = await request.json();
-    console.log("Body recibido en create_cart_preference:", body);
+    console.log("Body recibido en create_cart_preference:", JSON.stringify(body, null, 2));
+
     const items: CartItem[] = body.items;
+    const shippingCost = body.shippingCost;
+
     // Validación básica de que items sea array y tenga contenido
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Items inválidos" }, { status: 400 });
@@ -46,7 +49,9 @@ export async function POST(request: NextRequest) {
     const products = await prisma.product.findMany({
       where: { id: { in: productIds } },
     });
+
     for (const item of items) {
+      if (item.id === 'shipping') continue; // saltamos costo de envío
       const product = products.find(p => p.id === item.productId);
       if (!product) {
         return NextResponse.json({ error: `Producto ${item.title} no encontrado` }, { status: 404 });
@@ -83,17 +88,19 @@ export async function POST(request: NextRequest) {
         //   };
         // }),
         // Si es el ítem de envío lo dejamos como viene
-        if (item.id === "shipping") {
+        if (item.id === 'shipping') {
           return {
-            id: "shipping",
-            title: "Costo de envío",
-            quantity: 1,
+            id: 'shipping',
+            title: item.title,
+            quantity: item.quantity,
             unit_price: item.unit_price,
             currency_id: "ARS",
           };
         }
+
         const product = products.find(p => p.id === item.productId);
         if (!product) throw new Error(`Producto ${item.title} no encontrado al crear preferencia`);
+
         return {
           id: item.id,
           title: item.title,
@@ -102,12 +109,15 @@ export async function POST(request: NextRequest) {
           currency_id: "ARS",
         };
       }),
+      shipments: {
+        cost: shippingCost,
+        mode: "not_specified"
+      },
       back_urls: {
         success: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?status=approved`,
         failure: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?status=failed`,
         pending: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?status=pending`,
       },
-
       auto_return: "approved",
       // notification_url: "https://8074-2803-9810-335b-3210-e000-21e8-f369-8816.ngrok-free.app/api/notifications",
       // Produccion:
@@ -120,10 +130,12 @@ export async function POST(request: NextRequest) {
 
     // Aquí justo antes de llamar a MP:
     console.log("back_urls en preferencia:", preference.back_urls);
-    console.log("Preferencia completa antes de crear:", preference);
+    console.log("Preference antes de crear:", JSON.stringify(preference, null, 2));
 
     // Creamos la preferencia usando la instancia Preference
     const result = await preferences.create({ body: preference });
+    console.log("Resultado de preferences.create:", result);
+
 
     return NextResponse.json({ id: result.id });
   } catch (error) {
