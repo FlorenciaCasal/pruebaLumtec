@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 
 
 export async function createOrderPackages(
-  tx: Prisma.TransactionClient,
+    tx: Prisma.TransactionClient,
     orderId: string,
     items: { id: string; quantity: number }[]
 ) {
@@ -26,7 +26,7 @@ export async function createOrderPackages(
                 widthCm: packageInfo.widthCm,
                 heightCm: packageInfo.heightCm,
                 depthCm: packageInfo.depthCm,
-                quantity: item.quantity,
+                quantity: Number(item.quantity),
             },
         });
 
