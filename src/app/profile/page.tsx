@@ -189,7 +189,7 @@ export default function ProfilePage() {
                 };
             });
             setToastMessage("Dirección establecida como predeterminada ✔️");
-        } catch (err) {
+        } catch {
             setToastMessage("Error al establecer dirección por defecto ❌");
         } finally {
             setIsSettingDefault(false);
