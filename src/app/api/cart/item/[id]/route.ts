@@ -33,6 +33,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
             where: { id: cartItem.cartId },
             data: {
                 updatedAt: new Date(),
+                status: "closed",
             },
         });
 
@@ -87,7 +88,6 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
                 { status: 400 }
             );
         }
-
 
 
         const updatedItem = await prisma.cartItem.update({

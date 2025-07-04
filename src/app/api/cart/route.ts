@@ -179,6 +179,7 @@ export async function DELETE() {
       where: { id: cart.id },
       data: {
         updatedAt: new Date(),
+        status: "closed",
       },
     });
 

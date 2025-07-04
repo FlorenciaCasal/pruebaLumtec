@@ -14,4 +14,9 @@ export type PreferenceRequest = {
   };
   auto_return: "approved";
   notification_url?: string;
+  shipments?: {
+    cost: number;
+    mode: string;
+  };
+  metadata?: Record<string, any>;
 };

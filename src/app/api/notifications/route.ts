@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     const topic = body.topic || body.type;
 
-    if (["payment", "merchant_order"].includes(topic)) {
+    if (["payment", "merchant_order", "topic_merchant_order_wh"].includes(topic)) {
       // Solo validamos firma si está en producción Y la notificación es en live_mode
       if (process.env.NODE_ENV === "production" && body.live_mode === true) {
         const signature = request.headers.get("x-signature");
@@ -40,23 +40,6 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: "Signature missing" }, { status: 400 });
         }
 
-        // const ts = signature.match(/t=([^,]*)/)?.[1];
-        // const v1Hash = signature.match(/v1=([^,]*)/)?.[1];
-
-        // if (!ts || !v1Hash) {
-        //   console.error("❌ Formato de firma inválido");
-        //   return NextResponse.json({ error: "Invalid signature format" }, { status: 400 });
-        // }
-
-        // const generatedHash = crypto
-        //   .createHmac("sha256", MP_SECRET)
-        //   .update(`t=${ts}.${bodyText}`)
-        //   .digest("hex");
-
-        // if (v1Hash !== generatedHash) {
-        //   console.error("❌ Firma inválida", { recibida: v1Hash, calculada: generatedHash });
-        //   return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
-        // }
         const requestId = request.headers.get("x-request-id");
         const url = new URL(request.url);
 
