@@ -40,21 +40,50 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: "Signature missing" }, { status: 400 });
         }
 
-        const ts = signature.match(/t=([^,]*)/)?.[1];
-        const v1Hash = signature.match(/v1=([^,]*)/)?.[1];
+        // const ts = signature.match(/t=([^,]*)/)?.[1];
+        // const v1Hash = signature.match(/v1=([^,]*)/)?.[1];
 
-        if (!ts || !v1Hash) {
-          console.error("❌ Formato de firma inválido");
-          return NextResponse.json({ error: "Invalid signature format" }, { status: 400 });
+        // if (!ts || !v1Hash) {
+        //   console.error("❌ Formato de firma inválido");
+        //   return NextResponse.json({ error: "Invalid signature format" }, { status: 400 });
+        // }
+
+        // const generatedHash = crypto
+        //   .createHmac("sha256", MP_SECRET)
+        //   .update(`t=${ts}.${bodyText}`)
+        //   .digest("hex");
+
+        // if (v1Hash !== generatedHash) {
+        //   console.error("❌ Firma inválida", { recibida: v1Hash, calculada: generatedHash });
+        //   return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
+        // }
+        const requestId = request.headers.get("x-request-id");
+        const url = new URL(request.url);
+
+        // Obtenemos data.id de query params
+        const dataIdRaw = url.searchParams.get("data.id");
+        const dataId = dataIdRaw ? dataIdRaw.toLowerCase() : null;
+
+        // Parseamos la firma
+        const ts = signature?.match(/ts=([^,]*)/)?.[1];
+        const v1Hash = signature?.match(/v1=([^,]*)/)?.[1];
+
+        if (!dataId || !ts || !v1Hash || !requestId) {
+          console.error("Faltan datos para validar firma");
+          return NextResponse.json({ error: "Invalid signature data" }, { status: 400 });
         }
 
-        const generatedHash = crypto
+        // Armamos el manifest string
+        const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
+
+        // Calculamos la firma
+        const expectedHash = crypto
           .createHmac("sha256", MP_SECRET)
-          .update(`t=${ts}.${bodyText}`)
+          .update(manifest)
           .digest("hex");
 
-        if (v1Hash !== generatedHash) {
-          console.error("❌ Firma inválida", { recibida: v1Hash, calculada: generatedHash });
+        if (expectedHash !== v1Hash) {
+          console.error("❌ Firma inválida", { recibida: v1Hash, calculada: expectedHash });
           return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
         }
       } else {
@@ -170,6 +199,9 @@ export async function POST(request: NextRequest) {
         await tx.cart.update({
           where: { id: cartId },
           data: { status: "closed" }
+        });
+        await tx.cartItem.deleteMany({
+          where: { cartId }
         });
       }
 
