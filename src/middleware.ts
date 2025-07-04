@@ -23,6 +23,12 @@ export default withAuth(
       return NextResponse.redirect(new URL('/unauthorized', req.url));
     }
 
+    // Protejo /api/users solo para admin
+    if (pathname.startsWith('/api/users') && role !== 'admin') {
+      console.log("⛔️ Acceso denegado a /api/users para rol:", role);
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     console.log("✅ Acceso permitido para rol:", role);
     return NextResponse.next();
   },
@@ -39,6 +45,6 @@ export default withAuth(
 // Defino qué rutas quiero proteger
 export const config = {
   // matcher: ['/admin/:path*', '/api/cart/:path*', '/api/orders/:path*', '/cart/:path*' ], // o las que necesites
-  matcher: ['/admin/:path*', '/api/cart/:path*', '/api/orders/:path*'], // o las que necesites
+  matcher: ['/admin/:path*', '/api/cart/:path*', '/api/orders/:path*', '/api/users/:path*'], // o las que necesites
 };
 
