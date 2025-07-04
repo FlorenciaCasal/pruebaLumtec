@@ -106,7 +106,7 @@ export default function Navbar() {
                             <Link href="/admin" className="text-white pr-4 ml-2 text-lg font-medium transition-all duration-400 ease-in-out hover:opacity-70">Administrar</Link>
                         ) : (
                             <Link href="/profile">
-                                <span className="text-black font-medium bg-[#f9d275] w-8 h-8 flex items-center justify-center rounded-xl">
+                                <span className="text-black font-medium bg-[#f9d275] ml-1 w-10 h-10 flex items-center justify-center rounded-full transition-all duration-400 ease-in-out hover:opacity-70">
                                     {session.user.name
                                         .split(' ')
                                         .map(word => word[0])
@@ -155,18 +155,8 @@ export default function Navbar() {
             {/* Mobile: saludo a la izquierda, hamburguesa a la derecha */}
             <div className="flex items-center justify-end md:hidden">
                 {session?.user?.name ? (
-                    session.user.role === 'admin' ? (
-                        <Link href="/admin" className="text-white pl-0 sm:pl-4 xs:pl-0 xs:pr-4 ml-2 text-[16px] sm:text-lg font-medium transition-all duration-400 ease-in-out hover:opacity-70">Administrar</Link>
-                    ) : (
-                        <Link href="/profile">
-                            <span className="text-black font-medium bg-[#f9d275] w-8 h-8 flex items-center justify-center rounded-xl">
-                                {session.user.name
-                                    .split(' ')
-                                    .map(word => word[0])
-                                    .join('')
-                                    .toUpperCase()}
-                            </span>
-                        </Link>
+                    session.user.role === 'admin' && (
+                        <Link href="/admin" className="text-white pl-0 sm:pl-4 xs:pl-0 pr-2 xs:pr-4 ml-2 text-[16px] sm:text-lg font-medium transition-all duration-400 ease-in-out hover:opacity-70">Administrar</Link>
                     )
                 ) : (
                     <div /> // placeholder vacío para que no mueva el botón
@@ -174,7 +164,7 @@ export default function Navbar() {
 
                 <button
                     onClick={() => setMenuOpen(!menuOpen)}
-                    className="text-xl text-white focus:outline-none ml-2"
+                    className="text-xl text-white focus:outline-none ml-2 transition-all duration-400 ease-in-out hover:opacity-70"
                     aria-label="Toggle menu"
                 >
                     ☰
