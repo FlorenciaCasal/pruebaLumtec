@@ -222,11 +222,11 @@ export default function Navbar() {
                             Productos
                         </Link>
                         <Link
-                            href="/nosotros"
+                            href="/profile"
                             className="text-white hover:text-gray-500 transition mb-4"
                             onClick={() => setMenuOpen(false)}
                         >
-                            Nosotros
+                            Mi cuenta
                         </Link>
                         <Link
                             href="/contacto"

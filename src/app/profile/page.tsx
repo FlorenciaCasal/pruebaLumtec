@@ -86,7 +86,14 @@ export default function ProfilePage() {
                 const res = await fetch("/api/profile");
                 if (res.ok) {
                     const data = await res.json();
-                    setProfile(data);
+                    setProfile({
+                        ...data,
+                        addresses: data.addresses || [],
+                        sales: data.sales || [],
+                        payments: data.payments || [],
+                        orders: data.orders || [],
+                        carts: data.carts || []
+                    });
                 }
             };
             fetchProfile();
