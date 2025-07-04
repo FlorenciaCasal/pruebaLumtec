@@ -68,17 +68,6 @@ export default function Cart() {
         }
     }, [session, status, router]);
 
-    if (status === 'loading') {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600 border-opacity-50"></div>
-                <p className="text-gray-600 text-base sm:text-lg text-center px-4">
-                    Cargando tu carrito, un momento por favor...
-                </p>
-            </div>
-        );
-    }
-
     useEffect(() => {
         async function loadCart() {
             try {
@@ -108,7 +97,16 @@ export default function Cart() {
         loadCart();
     }, [dispatch]);
 
-
+    if (status === 'loading') {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600 border-opacity-50"></div>
+                <p className="text-gray-600 text-base sm:text-lg text-center px-4">
+                    Cargando tu carrito, un momento por favor...
+                </p>
+            </div>
+        );
+    }
 
     const handleRemoveFromCart = async (cartItemId: string) => {
         try {
