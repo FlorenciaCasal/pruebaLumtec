@@ -31,7 +31,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ emai
 
         return NextResponse.json({ message: "Usuario eliminado correctamente" });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error(error);
         return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
     }

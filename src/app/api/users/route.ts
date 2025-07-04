@@ -50,24 +50,24 @@ export async function GET() {
   }
 }
 
-// DELETE → eliminar usuario por email
-export async function DELETE(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const email = searchParams.get('email');
+// // DELETE → eliminar usuario por email
+// export async function DELETE(req: NextRequest) {
+//   try {
+//     const { searchParams } = new URL(req.url);
+//     const email = searchParams.get('email');
 
-    if (!email) {
-      return NextResponse.json({ error: 'Email es requerido' }, { status: 400 });
-    }
+//     if (!email) {
+//       return NextResponse.json({ error: 'Email es requerido' }, { status: 400 });
+//     }
 
-    const result = await prisma.user.delete({
-      where: { email },
-    });
+//     const result = await prisma.user.delete({
+//       where: { email },
+//     });
 
-    return NextResponse.json({ message: 'Usuario(s) eliminado(s)', result });
+//     return NextResponse.json({ message: 'Usuario(s) eliminado(s)', result });
 
-  } catch (error: any) {
-    console.error('Error eliminando usuario:', error.message, error);
-    return NextResponse.json({ error: error.message || 'Error eliminando usuario' }, { status: 500 });
-  }
-}
+//   } catch (error: any) {
+//     console.error('Error eliminando usuario:', error.message, error);
+//     return NextResponse.json({ error: error.message || 'Error eliminando usuario' }, { status: 500 });
+//   }
+// }

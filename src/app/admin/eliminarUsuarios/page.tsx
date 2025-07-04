@@ -2,8 +2,16 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+
+type User = {
+  id: string;
+  name: string | null;
+  email: string;
+  role: string;
+};
+
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchUsers = async () => {
