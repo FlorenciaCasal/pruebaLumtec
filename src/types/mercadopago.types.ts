@@ -18,5 +18,5 @@ export type PreferenceRequest = {
     cost: number;
     mode: string;
   };
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 };
