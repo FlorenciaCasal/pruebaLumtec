@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
         paymentId = orderData.payments?.[0]?.id;
       }
     } else if (topic === "payment") {
-      paymentId = body.data.id || body.resource;
+      paymentId = body?.data?.id || body.resource;
     }
 
     console.log("📨 Webhook completo:", JSON.stringify(body, null, 2));
