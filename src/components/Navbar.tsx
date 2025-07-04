@@ -127,29 +127,31 @@ export default function Navbar() {
                 )}
 
                 {/* Ícono carrito con badge */}
-                <Link href="/cart" className="relative text-white transition-all duration-400 ease-in-out hover:opacity-70">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                        className="w-6 h-6"
-                        aria-hidden="true"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7A1 1 0 007 17h10a1 1 0 001-1v-1M7 13L5.4 5M16 21a1 1 0 11-2 0 1 1 0 012 0zm-8 0a1 1 0 11-2 0 1 1 0 012 0z"
-                        />
-                    </svg>
+                {session && (
+                    <Link href="/cart" className="relative text-white transition-all duration-400 ease-in-out hover:opacity-70">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                            className="w-6 h-6"
+                            aria-hidden="true"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7A1 1 0 007 17h10a1 1 0 001-1v-1M7 13L5.4 5M16 21a1 1 0 11-2 0 1 1 0 012 0zm-8 0a1 1 0 11-2 0 1 1 0 012 0z"
+                            />
+                        </svg>
 
-                    {totalItems > 0 && (
-                        <span className="absolute -top-1 -right-2 bg-red-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center font-bold">
-                            {totalItems}
-                        </span>
-                    )}
-                </Link>
+                        {totalItems > 0 && (
+                            <span className="absolute -top-1 -right-2 bg-red-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center font-bold">
+                                {totalItems}
+                            </span>
+                        )}
+                    </Link>
+                )}
             </div>
 
             {/* Mobile: saludo a la izquierda, hamburguesa a la derecha */}
@@ -171,32 +173,33 @@ export default function Navbar() {
                 </button>
 
                 {/* Ícono carrito con badge */}
-                <Link href="/cart"
-                    onClick={() => setMenuOpen(false)}
-                    className="relative pl-2 text-white transition-all duration-400 ease-in-out hover:opacity-70">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                        className="w-6 h-6"
-                        aria-hidden="true"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7A1 1 0 007 17h10a1 1 0 001-1v-1M7 13L5.4 5M16 21a1 1 0 11-2 0 1 1 0 012 0zm-8 0a1 1 0 11-2 0 1 1 0 012 0z"
-                        />
-                    </svg>
+                {session && (
+                    <Link href="/cart"
+                        onClick={() => setMenuOpen(false)}
+                        className="relative pl-2 text-white transition-all duration-400 ease-in-out hover:opacity-70">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                            className="w-6 h-6"
+                            aria-hidden="true"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7A1 1 0 007 17h10a1 1 0 001-1v-1M7 13L5.4 5M16 21a1 1 0 11-2 0 1 1 0 012 0zm-8 0a1 1 0 11-2 0 1 1 0 012 0z"
+                            />
+                        </svg>
 
-                    {totalItems > 0 && (
-                        <span className="absolute -top-1 -right-2 bg-red-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center font-bold">
-                            {totalItems}
-                        </span>
-                    )}
-                </Link>
-
+                        {totalItems > 0 && (
+                            <span className="absolute -top-1 -right-2 bg-red-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center font-bold">
+                                {totalItems}
+                            </span>
+                        )}
+                    </Link>
+                )}
 
             </div>
 

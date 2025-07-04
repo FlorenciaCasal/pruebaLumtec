@@ -10,8 +10,9 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { setCartId, setCartItems } from "@/lib/store/cart/cartSlice";
 import { useEffect } from "react";
-import { formatearPrecio } from "../utils/format"
-
+import { formatearPrecio } from "../utils/format";
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 
 type ProductImage = {
@@ -58,6 +59,25 @@ export default function Cart() {
     const [shippingMethod, setShippingMethod] = useState<"store_pickup" | "delivery" | null>(null);
     const total = shippingCost !== null ? subtotal + shippingCost : subtotal;
     const cartId = useSelector((state: RootState) => state.cart.cartId);
+    const { data: session, status } = useSession();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (status !== 'loading' && !session) {
+            router.push('/login');
+        }
+    }, [session, status, router]);
+
+    if (status === 'loading') {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600 border-opacity-50"></div>
+                <p className="text-gray-600 text-base sm:text-lg text-center px-4">
+                    Cargando tu carrito, un momento por favor...
+                </p>
+            </div>
+        );
+    }
 
     useEffect(() => {
         async function loadCart() {
