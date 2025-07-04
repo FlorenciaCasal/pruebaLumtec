@@ -87,12 +87,23 @@ export default function Navbar() {
                 )}
             </div>
 
+
+            <div className="hidden md:flex items-center px-0 ">
+                {pathname !== '/' && (
+                    <Link href="/" className="text-white pr-6 text-lg font-medium transition-all duration-400 ease-in-out hover:opacity-70">
+                        Productos
+                    </Link>
+                )}
+            </div>
+
+
+
             {/* Desktop Links */}
             <div className="hidden md:flex space-x-6 items-center">
                 {session?.user?.name ? (
                     <>
                         {session?.user.role === 'admin' ? (
-                            <Link href="/admin" className="text-white pr-4 ml-2 text-lg font-medium transition-all duration-400 ease-in-out hover:opacity-70">Panel Admin</Link>
+                            <Link href="/admin" className="text-white pr-4 ml-2 text-lg font-medium transition-all duration-400 ease-in-out hover:opacity-70">Administrar</Link>
                         ) : (
                             <Link href="/profile">
                                 <span className="text-black font-medium bg-[#f9d275] w-8 h-8 flex items-center justify-center rounded-xl">
@@ -145,7 +156,7 @@ export default function Navbar() {
             <div className="flex items-center justify-end md:hidden">
                 {session?.user?.name ? (
                     session.user.role === 'admin' ? (
-                        <Link href="/admin" className="text-white pl-4 xs:pl-0 xs:pr-4 ml-2 text-lg font-medium transition-all duration-400 ease-in-out hover:opacity-70">Panel Admin</Link>
+                        <Link href="/admin" className="text-white pl-0 sm:pl-4 xs:pl-0 xs:pr-4 ml-2 text-[16px] sm:text-lg font-medium transition-all duration-400 ease-in-out hover:opacity-70">Administrar</Link>
                     ) : (
                         <Link href="/profile">
                             <span className="text-black font-medium bg-[#f9d275] w-8 h-8 flex items-center justify-center rounded-xl">
