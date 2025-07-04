@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Image from "next/image";
+import { capitalizeWords } from '@/utils/capitalizeWords';
 
 type ProductImage = {
     url: string;
@@ -53,7 +54,6 @@ type Address = {
     city: string;
     state: string;
     postalCode: string;
-    country: string;
     phone?: string;
     isDefault: boolean;
 };
@@ -91,7 +91,10 @@ export default function ProfilePage() {
                         addresses: data.addresses || [],
                         sales: data.sales || [],
                         payments: data.payments || [],
-                        orders: data.orders || [],
+                        orders: (data.orders || []).map((order: Order) => ({
+                            ...order,
+                            orderItems: order.orderItems || []
+                        })),
                         carts: data.carts || []
                     });
                 }
@@ -215,8 +218,6 @@ export default function ProfilePage() {
     if (!profile) return <p className="text-center mt-10">Cargando perfil...</p>;
 
 
-
-
     return (
         <div className="max-w-2xl mx-auto p-4 space-y-4">
             {
@@ -241,12 +242,15 @@ export default function ProfilePage() {
                     <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gray-300 flex items-center justify-center text-xl font-bold">
                         {profile.name
                             ?.split(" ")
-                            .map((n: string) => n[0])
+                            .slice(0, 3)
+                            .map((n: string) => n[0].toUpperCase())
                             .join("")}
                     </div>
                 )}
                 <div>
-                    <p className="text-xl font-bold">{profile.name}</p>
+                    <p className="text-xl font-bold">
+                        {capitalizeWords(profile.name)}
+                    </p>
                     <p className="text-gray-600 text-sm">{profile.email}</p>
                     <span className="text-sm px-2 py-1 rounded bg-gray-200">{profile.role}</span>
                 </div>
@@ -266,7 +270,7 @@ export default function ProfilePage() {
                                 {profile.addresses.map(addr => (
                                     <li key={addr.id} className="border p-3 rounded flex justify-between items-center">
                                         <div>
-                                            <p className="font-medium">{addr.street}, {addr.city}, {addr.state}, {addr.postalCode}, {addr.country}</p>
+                                            <p className="font-medium">{addr.street}, {addr.city}, {addr.state}, {addr.postalCode}</p>
                                             {addr.phone && <p className="text-sm text-gray-500">Tel: {addr.phone}</p>}
                                             {addr.isDefault && <span className="inline-block mt-1 px-2 py-0.5 bg-green-200 text-green-800 text-xs rounded">Predeterminada</span>}
                                         </div>
@@ -315,7 +319,7 @@ export default function ProfilePage() {
                                 <input
                                     type="text"
                                     name="state"
-                                    placeholder="Provincia/Estado"
+                                    placeholder="Provincia"
                                     value={newAddress.state}
                                     onChange={handleInputChange}
                                     className="w-full border rounded p-2"
@@ -330,37 +334,31 @@ export default function ProfilePage() {
                                 />
                                 <input
                                     type="text"
-                                    name="country"
-                                    placeholder="País"
-                                    value={newAddress.country}
-                                    onChange={handleInputChange}
-                                    className="w-full border rounded p-2"
-                                />
-                                <input
-                                    type="text"
                                     name="phone"
                                     placeholder="Teléfono (opcional)"
                                     value={newAddress.phone}
                                     onChange={handleInputChange}
                                     className="w-full border rounded p-2"
                                 />
-                                <label className="inline-flex items-center space-x-2">
-                                    <input
-                                        type="checkbox"
-                                        name="isDefault"
-                                        checked={newAddress.isDefault}
-                                        onChange={handleInputChange}
-                                    />
-                                    <span>Establecer como dirección predeterminada</span>
-                                </label>
+                                <div className="flex flex-col sm:flex-row sm:justify-between">
+                                    <label className="inline-flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            name="isDefault"
+                                            checked={newAddress.isDefault}
+                                            onChange={handleInputChange}
+                                        />
+                                        <span>Establecer como dirección predeterminada</span>
+                                    </label>
 
-                                <button
-                                    onClick={addAddress}
-                                    disabled={loadingAddress}
-                                    className="mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-green-300"
-                                >
-                                    {loadingAddress ? "Guardando..." : "Agregar dirección"}
-                                </button>
+                                    <button
+                                        onClick={addAddress}
+                                        disabled={loadingAddress}
+                                        className="mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-green-300"
+                                    >
+                                        {loadingAddress ? "Guardando..." : "Agregar dirección"}
+                                    </button>
+                                </div>
                             </div>
                         </>
                     )
